@@ -3,7 +3,7 @@ Servicio de autenticación
 """
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_login import UserMixin
-from config import Config
+from app.services.sheets_service import SheetsService
 
 
 class User(UserMixin):
@@ -15,35 +15,60 @@ class User(UserMixin):
         self.username = username
     
     @staticmethod
+    def _get_users_from_sheet():
+        """
+        Obtener usuarios desde Google Sheets
+        Retorna diccionario vacío si hay error (fallback silencioso)
+        """
+        try:
+            users_data = SheetsService.get_users_data()
+            # Convertir a diccionario para búsqueda rápida
+            users_dict = {}
+            for user in users_data:
+                username = str(user.get('username', '')).strip()
+                password = str(user.get('password', '')).strip()
+                if username and password:
+                    users_dict[username] = {'password': password}
+            return users_dict
+        except Exception as e:
+            print(f"⚠️ Advertencia: Error al obtener usuarios desde Excel: {e}")
+            print("   El sistema intentará usar usuarios del config como fallback.")
+            return {}
+    
+    @staticmethod
     def get(user_id):
         """
-        Obtener usuario por ID
+        Obtener usuario por ID desde Google Sheets
         """
-        if user_id in Config.USERS:
+        users = User._get_users_from_sheet()
+        if user_id in users:
             return User(user_id, user_id)
         return None
     
     @staticmethod
     def authenticate(username, password):
         """
-        Autenticar usuario
+        Autenticar usuario desde Google Sheets
         """
-        if username in Config.USERS:
-            user_data = Config.USERS[username]
-            stored_password = user_data.get('password', '')
+        try:
+            users = User._get_users_from_sheet()
             
-            # Si la contraseña no está hasheada (desarrollo), hashearla
-            if not stored_password.startswith('pbkdf2:'):
-                # Para desarrollo: comparar directamente
-                # En producción, siempre debe estar hasheada
-                if stored_password == password:
-                    # Hashear la contraseña para guardarla
-                    Config.USERS[username]['password'] = generate_password_hash(password)
-                    return User(username, username)
-            else:
-                # Verificar contraseña hasheada
-                if check_password_hash(stored_password, password):
-                    return User(username, username)
-        
-        return None
+            if username in users:
+                user_data = users[username]
+                stored_password = str(user_data.get('password', '')).strip()
+                
+                # Si la contraseña no está hasheada, comparar directamente
+                if not stored_password.startswith('pbkdf2:'):
+                    # Comparar contraseña en texto plano
+                    if stored_password == password:
+                        return User(username, username)
+                else:
+                    # Verificar contraseña hasheada
+                    if check_password_hash(stored_password, password):
+                        return User(username, username)
+            
+            return None
+        except Exception as e:
+            print(f"Error en autenticación: {e}")
+            return None
 

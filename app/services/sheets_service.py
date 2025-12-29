@@ -131,4 +131,63 @@ class SheetsService:
         except Exception as e:
             print(f"Error en get_product_by_id: {e}")
             return None
+    
+    @staticmethod
+    def get_users_data(sheet_url: str = None, gid: str = None) -> List[Dict]:
+        """
+        Obtener datos de usuarios desde Google Sheets
+        
+        Args:
+            sheet_url: URL del Google Sheet (opcional, usa USERS_SHEET_URL del config)
+            gid: ID de la pestaña específica (opcional, usa USERS_SHEET_GID del config)
+        
+        Returns:
+            Lista de diccionarios con los datos de usuarios
+        """
+        try:
+            if sheet_url is None:
+                sheet_url = Config.USERS_SHEET_URL
+            
+            if gid is None:
+                gid = Config.USERS_SHEET_GID
+            
+            df = SheetsService.read_google_sheet(sheet_url, gid)
+            
+            # Limpiar nombres de columnas (eliminar espacios y convertir a minúsculas para comparación)
+            df.columns = df.columns.str.strip()
+            
+            # Normalizar nombres de columnas (buscar variaciones)
+            username_col = None
+            password_col = None
+            
+            # Buscar columna de usuario (case insensitive)
+            for col in df.columns:
+                col_lower = col.lower()
+                if Config.USERS_COLUMN_USERNAME.lower() in col_lower or 'usuario' in col_lower or 'username' in col_lower or 'user' in col_lower:
+                    username_col = col
+                if Config.USERS_COLUMN_PASSWORD.lower() in col_lower or 'contraseña' in col_lower or 'password' in col_lower or 'pass' in col_lower:
+                    password_col = col
+            
+            if username_col is None or password_col is None:
+                raise ValueError(
+                    f"No se encontraron las columnas necesarias. "
+                    f"Esperadas: '{Config.USERS_COLUMN_USERNAME}' y '{Config.USERS_COLUMN_PASSWORD}'. "
+                    f"Encontradas: {list(df.columns)}"
+                )
+            
+            # Seleccionar solo las columnas necesarias y renombrarlas
+            df_users = df[[username_col, password_col]].copy()
+            df_users.columns = ['username', 'password']
+            
+            # Eliminar filas vacías
+            df_users = df_users.dropna(subset=['username', 'password'])
+            
+            # Convertir a lista de diccionarios
+            users_data = df_users.to_dict('records')
+            
+            return users_data
+        
+        except Exception as e:
+            print(f"Error en get_users_data: {e}")
+            return []
 

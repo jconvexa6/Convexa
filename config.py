@@ -19,14 +19,20 @@ class Config:
         'https://docs.google.com/spreadsheets/d/11YVSLtIM-pjsVT2fBe4yLEjZnVDGdrtchFQc1GYYPYE/edit'
     )
     
-    # Credenciales de usuario (en producción usar base de datos)
-    # Por ahora, usuario y contraseña (en desarrollo se acepta texto plano)
-    # En producción, usar hash: generate_password_hash('tu_contraseña')
-    USERS = {
-        'admin': {
-            'password': 'admin123',  # Contraseña por defecto (cambiar en producción)
-        }
-    }
+    # URL del Google Sheet de usuarios
+    USERS_SHEET_URL = os.environ.get(
+        'USERS_SHEET_URL',
+        'https://docs.google.com/spreadsheets/d/1DagcKZIkcvN0ODF0G-4Ddrml9e9HqNfFj-c6Z7zBrFs/edit'
+    )
+    
+    # ID de la pestaña/hoja para usuarios (gid)
+    # Si los usuarios están en una pestaña diferente, especifica el gid aquí
+    USERS_SHEET_GID = os.environ.get('USERS_SHEET_GID', '0')
+    
+    # Columnas esperadas en el Excel de usuarios
+    # Las columnas en tu Excel son: "User" y "pass"
+    USERS_COLUMN_USERNAME = os.environ.get('USERS_COLUMN_USERNAME', 'User')
+    USERS_COLUMN_PASSWORD = os.environ.get('USERS_COLUMN_PASSWORD', 'pass')
 
 
 class DevelopmentConfig(Config):

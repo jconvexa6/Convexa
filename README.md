@@ -133,13 +133,19 @@ WEBSITE-INV/
 
 ## 🔐 Autenticación
 
-El sistema usa Flask-Login para manejo de sesiones. Las credenciales se configuran en `config.py`.
+El sistema usa Flask-Login para manejo de sesiones. **Las credenciales se leen desde un Google Sheet (Excel)**.
 
-**Por defecto:**
-- Usuario: `admin`
-- Contraseña: `admin123`
+### Configuración de Usuarios
 
-⚠️ **Cambia estas credenciales antes de desplegar en producción.**
+Los usuarios y contraseñas se leen desde un Google Sheet. Por defecto, se usa la misma hoja del inventario, pero puedes configurar una hoja diferente.
+
+**Estructura del Excel:**
+- Columna 1: `usuario` (o `username`, `user`)
+- Columna 2: `contraseña` (o `password`, `pass`)
+
+Ver `USUARIOS_EXCEL.md` para más detalles sobre cómo configurar el Excel de usuarios.
+
+⚠️ **En producción, considera usar contraseñas hasheadas para mayor seguridad.**
 
 ## 📊 Google Sheets
 
