@@ -15,11 +15,16 @@ def login():
     """
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
-        password = request.form.get('password', '')
+        password = request.form.get('password', '')  # No hacer strip de password (puede tener espacios intencionales)
         
         if not username or not password:
             flash('Por favor, ingresa usuario y contraseña.', 'error')
             return render_template('auth/login.html')
+        
+        # Debug: mostrar qué se está intentando (solo en desarrollo)
+        import os
+        if os.environ.get('FLASK_ENV') != 'production':
+            print(f"Intento de login - Usuario: '{username}', Password recibida: '{password}'")
         
         user = User.authenticate(username, password)
         

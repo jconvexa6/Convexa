@@ -28,11 +28,14 @@ class User(UserMixin):
                 username = str(user.get('username', '')).strip()
                 password = str(user.get('password', '')).strip()
                 if username and password:
+                    # Guardar con el username original (sin normalizar)
                     users_dict[username] = {'password': password}
+            print(f"✓ Usuarios cargados desde Excel: {list(users_dict.keys())}")
             return users_dict
         except Exception as e:
             print(f"⚠️ Advertencia: Error al obtener usuarios desde Excel: {e}")
-            print("   El sistema intentará usar usuarios del config como fallback.")
+            import traceback
+            traceback.print_exc()
             return {}
     
     @staticmethod
@@ -53,22 +56,36 @@ class User(UserMixin):
         try:
             users = User._get_users_from_sheet()
             
-            if username in users:
-                user_data = users[username]
-                stored_password = str(user_data.get('password', '')).strip()
+            # Normalizar username (case insensitive)
+            username = str(username).strip()
+            # NO hacer strip de password - puede tener espacios intencionales
+            
+            # Buscar usuario (case insensitive)
+            user_found = None
+            for user_key in users.keys():
+                if str(user_key).strip().lower() == username.lower():
+                    user_found = user_key
+                    break
+            
+            if user_found:
+                user_data = users[user_found]
+                stored_password = str(user_data.get('password', ''))
                 
                 # Si la contraseña no está hasheada, comparar directamente
                 if not stored_password.startswith('pbkdf2:'):
-                    # Comparar contraseña en texto plano
-                    if stored_password == password:
-                        return User(username, username)
+                    # Comparar contraseña en texto plano (exacta, sin strip)
+                    # Primero intentar exacta, luego con strip por si hay espacios en el Excel
+                    if stored_password == password or stored_password.strip() == password.strip():
+                        return User(user_found, user_found)
                 else:
                     # Verificar contraseña hasheada
                     if check_password_hash(stored_password, password):
-                        return User(username, username)
+                        return User(user_found, user_found)
             
             return None
         except Exception as e:
             print(f"Error en autenticación: {e}")
+            import traceback
+            traceback.print_exc()
             return None
 
