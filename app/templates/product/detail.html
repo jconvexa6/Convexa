@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle del Producto - Sistema de Inventario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Detalle del Producto</h2>
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">
+                ← Volver al Dashboard
+            </a>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Información del Producto #{{ product_id }}</h5>
+            </div>
+            <div class="card-body">
+                {% if product %}
+                    <div class="row">
+                        {% for key, value in product.items() %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card border">
+                                    <div class="card-body">
+                                        <h6 class="card-subtitle mb-2 text-muted">
+                                            {{ key|title|replace('_', ' ') }}
+                                        </h6>
+                                        <p class="card-text">
+                                            {% if value is none %}
+                                                <span class="text-muted">No disponible</span>
+                                            {% elif value is sameas true %}
+                                                <span class="badge bg-success">Sí</span>
+                                            {% elif value is sameas false %}
+                                                <span class="badge bg-secondary">No</span>
+                                            {% else %}
+                                                {{ value }}
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning" role="alert">
+                        No se encontró información para este producto.
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">
+                    Volver al Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
