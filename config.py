@@ -25,6 +25,9 @@ class Config:
         'https://docs.google.com/spreadsheets/d/1DagcKZIkcvN0ODF0G-4Ddrml9e9HqNfFj-c6Z7zBrFs/edit'
     )
     
+    # ID de la pestaña/hoja para usuarios (gid)
+    USERS_SHEET_GID = os.environ.get('USERS_SHEET_GID', '0')
+    
     # Columnas del Excel de usuarios
     USERS_COLUMN_USERNAME = os.environ.get('USERS_COLUMN_USERNAME', 'User')
     USERS_COLUMN_PASSWORD = os.environ.get('USERS_COLUMN_PASSWORD', 'pass')
