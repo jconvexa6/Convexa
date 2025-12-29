@@ -78,19 +78,29 @@ La aplicación estará disponible en: `http://localhost:5000`
 
 1. En Render, crea un nuevo **Web Service**
 2. Configura:
-   - **Build Command:** `pip install -r requirements.txt`
+   - **Build Command:** `pip install --upgrade pip setuptools wheel && pip install -r requirements.txt`
    - **Start Command:** `gunicorn wsgi:app`
    - **Environment:** `Python 3`
+   - **Python Version:** Se detecta automáticamente desde `runtime.txt` (Python 3.11)
 
 ### 3. Variables de entorno
 
 Configura las siguientes variables de entorno en Render:
 
+**Mínimas requeridas:**
 ```
 FLASK_ENV=production
 SECRET_KEY=tu-clave-secreta-muy-segura-aqui
-INVENTORY_SHEET_URL=https://docs.google.com/spreadsheets/d/11YVSLtIM-pjsVT2fBe4yLEjZnVDGdrtchFQc1GYYPYE/edit
 ```
+
+**Opcionales (ya tienen valores por defecto):**
+```
+INVENTORY_SHEET_URL=https://docs.google.com/spreadsheets/d/11YVSLtIM-pjsVT2fBe4yLEjZnVDGdrtchFQc1GYYPYE/edit
+USERS_SHEET_URL=https://docs.google.com/spreadsheets/d/1DagcKZIkcvN0ODF0G-4Ddrml9e9HqNfFj-c6Z7zBrFs/edit
+PYTHON_VERSION=3.11
+```
+
+**Nota:** Ver `DEPLOY.md` para instrucciones detalladas de despliegue.
 
 ### 4. Desplegar
 
@@ -126,7 +136,7 @@ WEBSITE-INV/
 ├── config.py                 # Configuración
 ├── app.py                    # Ejecución en desarrollo
 ├── wsgi.py                   # WSGI para producción
-├── run.py                    # Script alternativo
+├── runtime.txt               # Versión de Python para Render
 ├── requirements.txt          # Dependencias
 └── README.md                 # Este archivo
 ```
@@ -162,10 +172,11 @@ El servicio convierte automáticamente el Google Sheet a CSV y lo procesa con Pa
 
 - **Flask 3.0.0** - Framework web
 - **Flask-Login 0.6.3** - Autenticación
-- **Pandas 2.1.4** - Procesamiento de datos
+- **Pandas >=2.2.0** - Procesamiento de datos
 - **Bootstrap 5.3.0** - Framework CSS
 - **DataTables** - Tablas interactivas
-- **Gunicorn** - Servidor WSGI para producción
+- **Gunicorn 21.2.0** - Servidor WSGI para producción
+- **Python 3.11** - Versión de Python requerida
 
 ## 📝 Notas
 
@@ -181,13 +192,23 @@ El servicio convierte automáticamente el Google Sheet a CSV y lo procesa con Pa
 - Revisa la conexión a internet
 
 ### Error de autenticación
-- Verifica las credenciales en `config.py`
-- Asegúrate de que Flask-Login esté correctamente configurado
+- Verifica que el Excel de usuarios sea accesible
+- Revisa los nombres de las columnas en el Excel
+- Ver `USUARIOS_EXCEL.md` para más detalles
 
-### Error en producción
+### Error en producción (Render)
 - Verifica que todas las variables de entorno estén configuradas
 - Revisa los logs en Render
 - Asegúrate de que `gunicorn` esté en `requirements.txt`
+- **Si tienes errores de "metadata-generation-failed"**: Ver `RENDER_TROUBLESHOOTING.md`
+- **Asegúrate de que Render use Python 3.11** (no 3.13): Agrega `PYTHON_VERSION=3.11` en variables de entorno
+
+## 📚 Documentación Adicional
+
+- **`DEPLOY.md`** - Guía detallada de despliegue en Render
+- **`RENDER_TROUBLESHOOTING.md`** - Solución de problemas comunes en Render
+- **`USUARIOS_EXCEL.md`** - Configuración de usuarios desde Excel
+- **`PROJECT_STRUCTURE.md`** - Estructura detallada del proyecto
 
 ## 📄 Licencia
 

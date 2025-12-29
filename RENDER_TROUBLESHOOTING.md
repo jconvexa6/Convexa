@@ -1,6 +1,19 @@
 # Solución de Problemas - Despliegue en Render
 
-## Error: metadata-generation-failed
+## Error: metadata-generation-failed (Python 3.13 incompatible)
+
+**PROBLEMA:** Render está usando Python 3.13, pero pandas 2.1.4 no es compatible.
+
+**SOLUCIÓN INMEDIATA:**
+
+1. **Verifica que `runtime.txt` contenga:** `python-3.11` (no 3.13)
+2. **En Render, agrega esta variable de entorno:**
+   ```
+   PYTHON_VERSION=3.11
+   ```
+3. **O actualiza pandas a versión 2.2.0 o superior** (ya está actualizado en requirements.txt)
+
+## Error: metadata-generation-failed (General)
 
 Este error generalmente ocurre por problemas con las dependencias. Sigue estos pasos:
 
