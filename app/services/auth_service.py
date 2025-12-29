@@ -26,10 +26,11 @@ class User(UserMixin):
             users_dict = {}
             for user in users_data:
                 username = str(user.get('username', '')).strip()
-                password = str(user.get('password', '')).strip()
+                password = str(user.get('password', ''))  # NO hacer strip aquí
                 if username and password:
                     # Guardar con el username original (sin normalizar)
                     users_dict[username] = {'password': password}
+                    print(f"DEBUG - Usuario cargado: '{username}', Password (repr): {repr(password)}")
             print(f"✓ Usuarios cargados desde Excel: {list(users_dict.keys())}")
             return users_dict
         except Exception as e:
@@ -71,12 +72,30 @@ class User(UserMixin):
                 user_data = users[user_found]
                 stored_password = str(user_data.get('password', ''))
                 
+                # Debug: mostrar comparación
+                print(f"DEBUG Auth - Usuario encontrado: '{user_found}'")
+                print(f"DEBUG Auth - Password almacenada (repr): {repr(stored_password)}")
+                print(f"DEBUG Auth - Password ingresada (repr): {repr(password)}")
+                print(f"DEBUG Auth - Longitud almacenada: {len(stored_password)}")
+                print(f"DEBUG Auth - Longitud ingresada: {len(password)}")
+                
                 # Si la contraseña no está hasheada, comparar directamente
                 if not stored_password.startswith('pbkdf2:'):
-                    # Comparar contraseña en texto plano (exacta, sin strip)
-                    # Primero intentar exacta, luego con strip por si hay espacios en el Excel
-                    if stored_password == password or stored_password.strip() == password.strip():
+                    # Comparar contraseña en texto plano
+                    # Intentar varias formas de comparación
+                    matches = [
+                        stored_password == password,  # Exacta
+                        stored_password.strip() == password.strip(),  # Con strip
+                        stored_password.rstrip() == password.rstrip(),  # Solo espacios finales
+                    ]
+                    
+                    print(f"DEBUG Auth - Comparaciones: exacta={matches[0]}, strip={matches[1]}, rstrip={matches[2]}")
+                    
+                    if any(matches):
+                        print(f"DEBUG Auth - ✓ Contraseña correcta")
                         return User(user_found, user_found)
+                    else:
+                        print(f"DEBUG Auth - ✗ Contraseña incorrecta")
                 else:
                     # Verificar contraseña hasheada
                     if check_password_hash(stored_password, password):
