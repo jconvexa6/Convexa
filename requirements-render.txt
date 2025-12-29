@@ -1,0 +1,12 @@
+# Versión alternativa para Render con versiones más flexibles
+# Usa este archivo si requirements.txt da errores en Render
+# Renombra este archivo a requirements.txt en Render
+
+Flask>=3.0.0,<4.0.0
+Werkzeug>=3.0.0,<4.0.0
+Flask-Login>=0.6.3,<1.0.0
+pandas>=2.0.0,<3.0.0
+gunicorn>=21.0.0,<22.0.0
+openpyxl>=3.1.0,<4.0.0
+requests>=2.31.0,<3.0.0
+

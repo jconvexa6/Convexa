@@ -17,8 +17,22 @@ Asegúrate de que tu código esté en un repositorio Git (GitHub, GitLab, Bitbuc
 **Configuración básica:**
 - **Name:** `sistema-inventario` (o el nombre que prefieras)
 - **Environment:** `Python 3`
-- **Build Command:** `pip install -r requirements.txt`
-- **Start Command:** `gunicorn wsgi:app`
+- **Python Version:** `3.11.9` (se especifica en `runtime.txt`)
+
+**Build Command (IMPORTANTE):**
+```bash
+pip install --upgrade pip setuptools wheel && pip install -r requirements.txt
+```
+
+**Start Command:**
+```bash
+gunicorn wsgi:app
+```
+
+**Nota:** Si tienes errores de "metadata-generation-failed", usa este Build Command alternativo:
+```bash
+pip install --upgrade pip setuptools wheel && pip install --no-cache-dir -r requirements.txt
+```
 
 ### 4. Variables de Entorno
 
