@@ -26,11 +26,7 @@ def get_credentials():
     """
     creds = None
     
-<<<<<<< HEAD
     # Primero intentar desde variable de entorno (para producción en Render)
-=======
-    # Primero intentar cargar desde variable de entorno (para producción en Render)
->>>>>>> 7c21d0751c7b6109244cd54d2f31f523da246d72
     token_json_env = os.environ.get('GOOGLE_TOKEN_JSON')
     if token_json_env:
         try:
@@ -45,7 +41,6 @@ def get_credentials():
         except Exception as e:
             print(f"Error al cargar token desde variable de entorno: {e}")
     
-<<<<<<< HEAD
     # Intentar desde archivo de configuración local (no en git)
     try:
         from app.config.google_credentials import get_token_data
@@ -62,9 +57,6 @@ def get_credentials():
         pass
     except Exception as e:
         print(f"Error al cargar token desde configuración: {e}")
-    
-=======
->>>>>>> 7c21d0751c7b6109244cd54d2f31f523da246d72
     # Buscar token en múltiples ubicaciones
     token_paths = [
         os.path.join('app', 'static', 'Credenciales', 'token.json'),
