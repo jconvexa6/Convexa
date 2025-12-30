@@ -49,4 +49,8 @@ Thumbs.db
 # Google API credentials (si se usan)
 credentials.json
 token.pickle
+token.json
+app/static/Credenciales/token.json
+app/static/Credenciales/credentials.json
+app/templates/llavesAcceso/
 

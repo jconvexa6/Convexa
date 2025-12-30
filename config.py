@@ -31,6 +31,12 @@ class Config:
     # Columnas del Excel de usuarios
     USERS_COLUMN_USERNAME = os.environ.get('USERS_COLUMN_USERNAME', 'User')
     USERS_COLUMN_PASSWORD = os.environ.get('USERS_COLUMN_PASSWORD', 'pass')
+    
+    # URL del Google Sheet de histórico de movimientos
+    HISTORY_SHEET_URL = os.environ.get(
+        'HISTORY_SHEET_URL',
+        'https://docs.google.com/spreadsheets/d/1RfaOyNpLT4IYR9vsRatE1G0Ru0BVjdHSNuBRF5tfN2M/edit'
+    )
 
 
 class DevelopmentConfig(Config):

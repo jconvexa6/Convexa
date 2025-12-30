@@ -91,14 +91,24 @@ class SheetsService:
             # Reemplazar NaN con None para JSON
             df = df.where(pd.notna(df), None)
             
-            # Agregar un ID único basado en el índice si no existe una columna ID
-            if 'id' not in df.columns and 'ID' not in df.columns:
-                df.insert(0, 'id', range(1, len(df) + 1))
-            
+            # NO generar IDs automáticamente - usar solo los IDs que existen en la hoja
             # Convertir a lista de diccionarios
             data = df.to_dict('records')
             
-            return data
+            # Filtrar solo productos que tengan un ID válido (en cualquier formato: id, ID, codigo, etc.)
+            filtered_data = []
+            for item in data:
+                # Buscar ID en diferentes formatos
+                has_id = False
+                for key in ['id', 'ID', 'Id', 'codigo', 'Código', 'CODIGO', 'Codigo']:
+                    if key in item and item[key] is not None and str(item[key]).strip() != '':
+                        has_id = True
+                        break
+                
+                if has_id:
+                    filtered_data.append(item)
+            
+            return filtered_data
         
         except Exception as e:
             print(f"Error en get_inventory_data: {e}")
@@ -119,12 +129,16 @@ class SheetsService:
         try:
             data = SheetsService.get_inventory_data(sheet_url)
             
-            # Buscar producto por ID
+            # Buscar producto por ID en diferentes formatos de columna
+            product_id_str = str(product_id).strip()
+            
             for product in data:
-                # El ID puede estar como string o int
-                product_id_str = str(product.get('id', ''))
-                if product_id_str == str(product_id):
-                    return product
+                # Buscar ID en diferentes formatos de columna
+                for id_key in ['id', 'ID', 'Id', 'codigo', 'Código', 'CODIGO', 'Codigo']:
+                    if id_key in product:
+                        product_id_value = str(product[id_key]).strip() if product[id_key] is not None else ''
+                        if product_id_value == product_id_str:
+                            return product
             
             return None
         

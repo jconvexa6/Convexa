@@ -1,60 +1,222 @@
 {% extends "base.html" %}
 
-{% block title %}Detalle del Producto - Sistema de Inventario{% endblock %}
+{% block title %}Editar Producto - Sistema de Inventario{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Detalle del Producto</h2>
+            <h2>Editar Producto</h2>
             <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">
                 ← Volver al Dashboard
             </a>
         </div>
         
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Información del Producto #{{ product_id }}</h5>
-            </div>
-            <div class="card-body">
-                {% if product %}
+        {% if product %}
+        <form method="POST" action="{{ url_for('product.detail', product_id=product_id) }}">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Información del Producto #{{ product_id }}</h5>
+                </div>
+                <div class="card-body">
                     <div class="row">
                         {% for key, value in product.items() %}
+                            {% set is_locked = key.lower() in ['id', 'codigo', 'código'] %}
                             <div class="col-md-6 mb-3">
-                                <div class="card border">
-                                    <div class="card-body">
-                                        <h6 class="card-subtitle mb-2 text-muted">
-                                            {{ key|title|replace('_', ' ') }}
-                                        </h6>
-                                        <p class="card-text">
-                                            {% if value is none %}
-                                                <span class="text-muted">No disponible</span>
-                                            {% elif value is sameas true %}
-                                                <span class="badge bg-success">Sí</span>
-                                            {% elif value is sameas false %}
-                                                <span class="badge bg-secondary">No</span>
-                                            {% else %}
-                                                {{ value }}
-                                            {% endif %}
-                                        </p>
+                                <label for="{{ key }}" class="form-label">
+                                    {{ key|title|replace('_', ' ') }}
+                                    {% if is_locked %}
+                                        <span class="badge bg-secondary">Bloqueado</span>
+                                    {% endif %}
+                                </label>
+                                {% if is_locked %}
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        id="{{ key }}" 
+                                        name="{{ key }}" 
+                                        value="{{ value if value is not none else '' }}" 
+                                        readonly
+                                        style="background-color: #e9ecef;"
+                                    >
+                                {% elif key.lower() in ['cantidad', 'stock', 'cantidad '] %}
+                                    <div class="input-group">
+                                        <input 
+                                            type="number" 
+                                            step="0.01"
+                                            class="form-control stock-actual" 
+                                            id="{{ key }}" 
+                                            name="{{ key }}" 
+                                            value="{{ value if value is not none else 0 }}" 
+                                            readonly
+                                            data-stock-field="{{ key }}"
+                                            style="background-color: #e9ecef;"
+                                        >
+                                        <span class="input-group-text">Stock Actual</span>
                                     </div>
-                                </div>
+                                {% else %}
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        id="{{ key }}" 
+                                        name="{{ key }}" 
+                                        value="{{ value if value is not none else '' }}"
+                                    >
+                                {% endif %}
                             </div>
                         {% endfor %}
                     </div>
-                {% else %}
-                    <div class="alert alert-warning" role="alert">
-                        No se encontró información para este producto.
+                    
+                    <hr class="my-4">
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="tipo_movimiento" class="form-label">
+                                <strong>Tipo de Movimiento</strong>
+                            </label>
+                            <select 
+                                class="form-select" 
+                                id="tipo_movimiento" 
+                                name="tipo_movimiento" 
+                                required
+                            >
+                                <option value="">Seleccione...</option>
+                                <option value="ingreso">Ingreso</option>
+                                <option value="salida">Salida</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="unidades" class="form-label">
+                                <strong>Unidades</strong>
+                            </label>
+                            <input 
+                                type="number" 
+                                step="0.01"
+                                min="0"
+                                class="form-control" 
+                                id="unidades" 
+                                name="unidades" 
+                                value="0"
+                                required
+                            >
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Stock Final (Calculado)</label>
+                            <div class="input-group">
+                                <input 
+                                    type="text" 
+                                    class="form-control" 
+                                    id="stock_final" 
+                                    readonly
+                                    style="background-color: #d1ecf1; font-weight: bold;"
+                                >
+                                <span class="input-group-text">Stock después del ajuste</span>
+                            </div>
+                        </div>
                     </div>
-                {% endif %}
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">
+                        Guardar Cambios
+                    </button>
+                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">
+                        Cancelar
+                    </a>
+                </div>
             </div>
-            <div class="card-footer">
-                <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">
-                    Volver al Dashboard
-                </a>
+        </form>
+        {% else %}
+            <div class="alert alert-warning" role="alert">
+                No se encontró información para este producto.
             </div>
-        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
 
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Obtener stock actual (buscar cualquier campo de stock)
+        const stockInput = document.querySelector('.stock-actual') || 
+                          document.querySelector('input[name="cantidad"]') ||
+                          document.querySelector('input[name="Cantidad"]') ||
+                          document.querySelector('input[name="stock"]') ||
+                          document.querySelector('input[name="Stock"]');
+        
+        const tipoMovimientoSelect = document.getElementById('tipo_movimiento');
+        const unidadesInput = document.getElementById('unidades');
+        const stockFinalInput = document.getElementById('stock_final');
+        
+        function calcularStockFinal() {
+            if (stockInput && tipoMovimientoSelect && unidadesInput && stockFinalInput) {
+                const stockActual = parseFloat(stockInput.value) || 0;
+                const unidades = parseFloat(unidadesInput.value) || 0;
+                const tipoMovimiento = tipoMovimientoSelect.value;
+                
+                let stockFinal = stockActual;
+                
+                if (tipoMovimiento === 'ingreso') {
+                    stockFinal = stockActual + unidades;
+                } else if (tipoMovimiento === 'salida') {
+                    stockFinal = stockActual - unidades;
+                }
+                
+                stockFinalInput.value = stockFinal.toFixed(2);
+                
+                // Cambiar color según si es negativo
+                if (stockFinal < 0) {
+                    stockFinalInput.style.backgroundColor = '#f8d7da';
+                    stockFinalInput.style.color = '#721c24';
+                    stockFinalInput.classList.add('is-invalid');
+                } else {
+                    stockFinalInput.style.backgroundColor = '#d1ecf1';
+                    stockFinalInput.style.color = '#0c5460';
+                    stockFinalInput.classList.remove('is-invalid');
+                }
+            }
+        }
+        
+        // Calcular cuando cambia el tipo de movimiento o las unidades
+        if (tipoMovimientoSelect) {
+            tipoMovimientoSelect.addEventListener('change', calcularStockFinal);
+        }
+        if (unidadesInput) {
+            unidadesInput.addEventListener('input', calcularStockFinal);
+            unidadesInput.addEventListener('change', calcularStockFinal);
+        }
+        calcularStockFinal(); // Calcular inicial
+        
+        // Validar antes de enviar
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const tipoMovimiento = tipoMovimientoSelect.value;
+                const unidades = parseFloat(unidadesInput.value) || 0;
+                const stockFinal = parseFloat(stockFinalInput.value) || 0;
+                
+                if (!tipoMovimiento) {
+                    e.preventDefault();
+                    alert('Por favor, seleccione un tipo de movimiento (Ingreso o Salida).');
+                    tipoMovimientoSelect.focus();
+                    return false;
+                }
+                
+                if (unidades <= 0) {
+                    e.preventDefault();
+                    alert('Las unidades deben ser mayor a 0.');
+                    unidadesInput.focus();
+                    return false;
+                }
+                
+                if (stockFinal < 0) {
+                    e.preventDefault();
+                    alert('No se puede guardar. El stock final sería negativo. Por favor, ajuste el valor de unidades.');
+                    unidadesInput.focus();
+                    return false;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

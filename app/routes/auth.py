@@ -21,11 +21,6 @@ def login():
             flash('Por favor, ingresa usuario y contraseña.', 'error')
             return render_template('auth/login.html')
         
-        # Debug: mostrar qué se está intentando (solo en desarrollo)
-        import os
-        if os.environ.get('FLASK_ENV') != 'production':
-            print(f"Intento de login - Usuario: '{username}', Password recibida: '{password}'")
-        
         user = User.authenticate(username, password)
         
         if user:
