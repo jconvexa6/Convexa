@@ -21,177 +21,84 @@ SCOPES = [
 
 def get_credentials():
     """
-    Obtener credenciales de Google API
-    Soporta carga desde archivos o variables de entorno (para producción)
+    Obtener credenciales de Google API exclusivamente desde variable de entorno.
+    
+    La variable de entorno GOOGLE_TOKEN_JSON debe contener el token completo en formato JSON.
+    Si la variable no está configurada o es inválida, la función falla explícitamente.
+    
+    Returns:
+        Credentials: Objeto de credenciales de Google API
+        
+    Raises:
+        ValueError: Si la variable de entorno no está configurada o el token es inválido
     """
-    creds = None
-    
-    # Primero intentar desde variable de entorno (para producción en Render)
+    # Leer token exclusivamente desde variable de entorno
     token_json_env = os.environ.get('GOOGLE_TOKEN_JSON')
-    if token_json_env:
-        try:
-            import json
-            token_data = json.loads(token_json_env)
-            creds = Credentials.from_authorized_user_info(token_data, SCOPES)
-            if creds and creds.valid:
-                return creds
-            elif creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-                return creds
-        except Exception as e:
-            print(f"Error al cargar token desde variable de entorno: {e}")
     
-    # Intentar desde archivo de configuración local (no en git)
+    if not token_json_env:
+        raise ValueError(
+            "GOOGLE_TOKEN_JSON no está configurada. "
+            "Configura esta variable de entorno con el contenido completo del token JSON."
+        )
+    
     try:
-        from app.config.google_credentials import get_token_data
-        token_data = get_token_data()
-        if token_data:
-            creds = Credentials.from_authorized_user_info(token_data, SCOPES)
-            if creds and creds.valid:
-                return creds
-            elif creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-                return creds
-    except ImportError:
-        # El archivo no existe, continuar con búsqueda normal
-        pass
+        import json
+        token_data = json.loads(token_json_env)
+    except json.JSONDecodeError as e:
+        raise ValueError(
+            f"GOOGLE_TOKEN_JSON contiene JSON inválido: {str(e)}. "
+            "Verifica que el valor sea un JSON válido."
+        )
     except Exception as e:
-        print(f"Error al cargar token desde configuración: {e}")
-    # Buscar token en múltiples ubicaciones
-    token_paths = [
-        os.path.join('app', 'static', 'Credenciales', 'token.json'),
-        os.path.join('app', 'static', 'Credenciales', 'token.pickle'),
-        os.path.join('app', 'templates', 'llavesAcceso', 'token.pickle'),
-        'token.pickle',
-        os.path.join('app', 'templates', 'llavesAcceso', 'token.json'),
-    ]
+        raise ValueError(
+            f"Error al procesar GOOGLE_TOKEN_JSON: {str(e)}. "
+            "Verifica que la variable de entorno esté correctamente configurada."
+        )
     
-    credentials_paths = [
-        os.path.join('app', 'static', 'Credenciales', 'credentials.json'),
-        os.path.join('app', 'templates', 'llavesAcceso', 'credentials.json'),
-        'credentials.json',
-    ]
+    # Validar que el token tenga los campos necesarios
+    required_fields = ['token', 'refresh_token', 'token_uri', 'client_id', 'client_secret']
+    missing_fields = [field for field in required_fields if field not in token_data]
     
-    # Buscar token
-    token_path = None
-    for path in token_paths:
-        if os.path.exists(path):
-            token_path = path
-            break
+    if missing_fields:
+        raise ValueError(
+            f"GOOGLE_TOKEN_JSON está incompleto. Faltan los campos: {', '.join(missing_fields)}"
+        )
     
-    # Buscar credentials
-    credentials_path = None
-    for path in credentials_paths:
-        if os.path.exists(path):
-            credentials_path = path
-            break
-    
-    # Cargar token si existe
-    if token_path:
-        try:
-            if token_path.endswith('.json'):
-                import json
-                with open(token_path, 'r', encoding='utf-8') as token:
-                    token_data = json.load(token)
-                    # Cargar credenciales desde el JSON
-                    creds = Credentials.from_authorized_user_info(token_data, SCOPES)
-            else:
-                with open(token_path, 'rb') as token:
-                    creds = pickle.load(token)
-        except FileNotFoundError:
-            creds = None
-        except Exception as e:
-            print(f"Error al cargar token: {e}")
-            creds = None
+    # Crear credenciales desde el token
+    try:
+        creds = Credentials.from_authorized_user_info(token_data, SCOPES)
+    except Exception as e:
+        raise ValueError(
+            f"Error al crear credenciales desde GOOGLE_TOKEN_JSON: {str(e)}. "
+            "Verifica que el token sea válido y tenga el formato correcto."
+        )
     
     # Verificar si el token tiene los scopes necesarios
-    if creds and creds.valid:
-        token_scopes = set(creds.scopes if creds.scopes else [])
+    if creds.scopes:
+        token_scopes = set(creds.scopes)
         required_scopes = set(SCOPES)
         missing_scopes = required_scopes - token_scopes
         
         if missing_scopes:
-            creds = None
+            raise ValueError(
+                f"El token no tiene los scopes necesarios. Faltan: {', '.join(missing_scopes)}"
+            )
     
-    # Si no hay credenciales válidas, intentar refrescar
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
+    # Si el token está expirado, intentar refrescarlo
+    if not creds.valid:
+        if creds.expired and creds.refresh_token:
             try:
                 creds.refresh(Request())
-                
-                # Guardar token refrescado SIEMPRE
-                if not token_path:
-                    token_path = os.path.join('app', 'static', 'Credenciales', 'token.json')
-                
-                save_dir = os.path.dirname(token_path) if os.path.dirname(token_path) else '.'
-                if not os.path.exists(save_dir) and save_dir != '.':
-                    os.makedirs(save_dir)
-                
-                try:
-                    if token_path.endswith('.json'):
-                        import json
-                        token_dict = {
-                            'token': creds.token,
-                            'refresh_token': creds.refresh_token,
-                            'token_uri': creds.token_uri,
-                            'client_id': creds.client_id,
-                            'client_secret': creds.client_secret,
-                            'scopes': creds.scopes,
-                        }
-                        with open(token_path, 'w', encoding='utf-8') as token:
-                            json.dump(token_dict, token, indent=2)
-                    else:
-                        with open(token_path, 'wb') as token:
-                            pickle.dump(creds, token)
-                except Exception as e:
-                    print(f"⚠️ Error al guardar token refrescado: {e}")
             except Exception as e:
-                print(f"Error al refrescar token: {e}")
-                import traceback
-                traceback.print_exc()
-                creds = None
-    
-    # Si no hay credenciales, necesitamos autenticación
-    if not creds:
-        if not credentials_path:
-            raise FileNotFoundError(
-                "No se encontró credentials.json. "
-                "Colócalo en app/static/Credenciales/, app/templates/llavesAcceso/ o en la raíz del proyecto."
+                raise ValueError(
+                    f"Error al refrescar el token: {str(e)}. "
+                    "El refresh_token puede ser inválido o haber expirado."
+                )
+        else:
+            raise ValueError(
+                "El token ha expirado y no se puede refrescar. "
+                "Genera un nuevo token y actualiza GOOGLE_TOKEN_JSON."
             )
-        
-        flow = InstalledAppFlow.from_client_secrets_file(credentials_path, SCOPES)
-        creds = flow.run_local_server(port=0)
-        
-        # Guardar token SIEMPRE después de autenticación
-        # Determinar dónde guardar el token
-        if not token_path:
-            # Si no hay token_path, usar el primero de la lista
-            token_path = os.path.join('app', 'static', 'Credenciales', 'token.json')
-        
-            save_dir = os.path.dirname(token_path) if os.path.dirname(token_path) else '.'
-            if not os.path.exists(save_dir) and save_dir != '.':
-                os.makedirs(save_dir)
-        
-        try:
-            if token_path.endswith('.json'):
-                import json
-                token_dict = {
-                    'token': creds.token,
-                    'refresh_token': creds.refresh_token,
-                    'token_uri': creds.token_uri,
-                    'client_id': creds.client_id,
-                    'client_secret': creds.client_secret,
-                    'scopes': creds.scopes,
-                }
-                with open(token_path, 'w', encoding='utf-8') as token:
-                    json.dump(token_dict, token, indent=2)
-            else:
-                with open(token_path, 'wb') as token:
-                    pickle.dump(creds, token)
-        except Exception as e:
-            print(f"⚠️ Error al guardar token: {e}")
-            import traceback
-            traceback.print_exc()
     
     return creds
 
