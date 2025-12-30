@@ -26,23 +26,19 @@ Ve a la sección **Environment** en Render y agrega estas variables:
 mi-clave-super-secreta-2024-abc123xyz789
 ```
 
-#### 🟠 Para escritura en Google Sheets (editar/crear productos)
+#### 🟠 Para escritura en Google Sheets (editar/crear productos) - OBLIGATORIO
 
-**IMPORTANTE:** Para que funcione la edición y creación de productos, necesitas configurar el token de Google:
+**⚠️ IMPORTANTE:** Sin esta variable, NO podrás editar ni crear productos.
 
-| Variable | Descripción |
-|----------|-------------|
-| `GOOGLE_TOKEN_JSON` | Token de Google API en formato JSON (ver instrucciones abajo) |
+**📖 Para instrucciones detalladas paso a paso, lee el archivo: `CONFIGURAR_TOKEN.md`**
 
-**Cómo obtener el token:**
-1. En tu máquina local, después de autenticarte, el token se guarda en `app/static/Credenciales/token.json`
-2. Abre ese archivo y copia TODO su contenido
-3. En Render, crea la variable `GOOGLE_TOKEN_JSON` y pega el contenido completo (todo en una sola línea, sin saltos de línea)
-
-**Ejemplo del valor:**
-```
-{"token":"ya29.a0Aa7pCA...","refresh_token":"1//01UCdRe...","token_uri":"https://oauth2.googleapis.com/token","client_id":"1012866464546-...","client_secret":"GOCSPX-...","scopes":["https://www.googleapis.com/auth/spreadsheets","https://www.googleapis.com/auth/drive"]}
-```
+**Resumen rápido:**
+1. Abre el archivo `app/static/Credenciales/token.json` en tu computadora
+2. Copia TODO su contenido (Ctrl+A, luego Ctrl+C)
+3. En Render, ve a tu servicio → **Environment** → **Add Environment Variable**
+4. **Key:** `GOOGLE_TOKEN_JSON`
+5. **Value:** Pega todo el contenido (TODO en una sola línea, sin saltos)
+6. Guarda y espera a que Render redesplegue
 
 #### 🟡 Opcionales (tienen valores por defecto)
 
