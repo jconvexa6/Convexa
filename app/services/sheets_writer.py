@@ -22,8 +22,24 @@ SCOPES = [
 def get_credentials():
     """
     Obtener credenciales de Google API
+    Soporta carga desde archivos o variables de entorno (para producción)
     """
     creds = None
+    
+    # Primero intentar cargar desde variable de entorno (para producción en Render)
+    token_json_env = os.environ.get('GOOGLE_TOKEN_JSON')
+    if token_json_env:
+        try:
+            import json
+            token_data = json.loads(token_json_env)
+            creds = Credentials.from_authorized_user_info(token_data, SCOPES)
+            if creds and creds.valid:
+                return creds
+            elif creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+                return creds
+        except Exception as e:
+            print(f"Error al cargar token desde variable de entorno: {e}")
     
     # Buscar token en múltiples ubicaciones
     token_paths = [
