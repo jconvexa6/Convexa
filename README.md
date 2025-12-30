@@ -28,16 +28,28 @@ Los usuarios se leen desde este Excel:
 - **Build Command:** `pip install --upgrade pip && pip install -r requirements.txt`
 - **Start Command:** `gunicorn wsgi:app`
 
-### Paso 2: Variables de Entorno (solo 2 necesarias)
+### Paso 2: Variables de Entorno
 
 En Render, ve a **Environment** y agrega:
 
+#### Obligatorias:
 ```
 FLASK_ENV=production
-SECRET_KEY=cualquier-texto-largo-y-secreto-aqui
+SECRET_KEY=tu-clave-secreta-muy-larga-aqui
 ```
 
-**Eso es todo.** Las demás configuraciones ya están en el código.
+#### Opcionales (tienen valores por defecto):
+Si necesitas cambiar las URLs de los Google Sheets, agrega:
+```
+INVENTORY_SHEET_URL=https://docs.google.com/spreadsheets/d/...
+USERS_SHEET_URL=https://docs.google.com/spreadsheets/d/...
+HISTORY_SHEET_URL=https://docs.google.com/spreadsheets/d/...
+USERS_SHEET_GID=0
+USERS_COLUMN_USERNAME=User
+USERS_COLUMN_PASSWORD=pass
+```
+
+**Nota:** Si no agregas las opcionales, se usarán los valores por defecto configurados en `config.py`.
 
 ## 📝 Notas
 
