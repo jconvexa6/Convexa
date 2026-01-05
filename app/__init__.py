@@ -4,7 +4,8 @@ Inicialización de la aplicación Flask
 from flask import Flask
 from flask_login import LoginManager
 from config import config
-
+# Importar modelos (para Flask-Login)
+from app.services.auth_service import User
 
 # Inicializar Flask-Login
 login_manager = LoginManager()
@@ -23,8 +24,7 @@ def create_app(config_name='default'):
     # Inicializar extensiones
     login_manager.init_app(app)
     
-    # Importar modelos (para Flask-Login)
-    from app.services.auth_service import User
+    
     
     @login_manager.user_loader
     def load_user(user_id):

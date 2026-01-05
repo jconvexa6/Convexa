@@ -2,6 +2,7 @@
 Servicio para escribir datos en Google Sheets usando la API
 """
 import os
+import json
 from datetime import datetime
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
@@ -16,41 +17,91 @@ SCOPES = [
     'https://www.googleapis.com/auth/drive'
 ]
 
+# Ruta para guardar el token actualizado localmente (como respaldo)
+TOKEN_BACKUP_PATH = os.path.join('app', 'static', 'Credenciales', 'token.json')
+
+
+def _save_token_backup(token_data: dict):
+    """
+    Guardar token actualizado en archivo local como respaldo.
+    Esto permite que el token refrescado persista entre reinicios.
+    
+    Args:
+        token_data: Diccionario con los datos del token
+    """
+    try:
+        # Crear directorio si no existe
+        os.makedirs(os.path.dirname(TOKEN_BACKUP_PATH), exist_ok=True)
+        
+        # Guardar token actualizado
+        with open(TOKEN_BACKUP_PATH, 'w', encoding='utf-8') as f:
+            json.dump(token_data, f, indent=2)
+        
+        print(f"✅ Token actualizado guardado en: {TOKEN_BACKUP_PATH}")
+    except Exception as e:
+        # No fallar si no se puede guardar, solo loguear
+        print(f"⚠️ No se pudo guardar el token actualizado: {e}")
+
+
+def _load_token_from_backup() -> dict:
+    """
+    Cargar token desde archivo local de respaldo.
+    
+    Returns:
+        dict: Datos del token o None si no existe
+    """
+    try:
+        if os.path.exists(TOKEN_BACKUP_PATH):
+            with open(TOKEN_BACKUP_PATH, 'r', encoding='utf-8') as f:
+                return json.load(f)
+    except Exception as e:
+        print(f"⚠️ No se pudo cargar el token de respaldo: {e}")
+    
+    return None
+
 
 def get_credentials():
     """
-    Obtener credenciales de Google API exclusivamente desde variable de entorno.
+    Obtener credenciales de Google API con manejo automático de refresh.
     
-    La variable de entorno GOOGLE_TOKEN_JSON debe contener el token completo en formato JSON.
-    Si la variable no está configurada o es inválida, la función falla explícitamente.
+    Prioridad:
+    1. Variable de entorno GOOGLE_TOKEN_JSON
+    2. Archivo local de respaldo (token.json)
+    
+    Si el token expira, se refresca automáticamente usando el refresh_token
+    y se guarda en el archivo local de respaldo.
     
     Returns:
         Credentials: Objeto de credenciales de Google API
         
     Raises:
-        ValueError: Si la variable de entorno no está configurada o el token es inválido
+        ValueError: Si no se puede obtener o refrescar el token
     """
-    # Leer token exclusivamente desde variable de entorno
+    token_data = None
+    
+    # 1. Intentar desde variable de entorno (prioridad)
     token_json_env = os.environ.get('GOOGLE_TOKEN_JSON')
+    if token_json_env:
+        try:
+            token_data = json.loads(token_json_env)
+            print("✅ Token cargado desde variable de entorno")
+        except json.JSONDecodeError as e:
+            print(f"⚠️ GOOGLE_TOKEN_JSON contiene JSON inválido: {e}")
+        except Exception as e:
+            print(f"⚠️ Error al procesar GOOGLE_TOKEN_JSON: {e}")
     
-    if not token_json_env:
-        raise ValueError(
-            "GOOGLE_TOKEN_JSON no está configurada. "
-            "Configura esta variable de entorno con el contenido completo del token JSON."
-        )
+    # 2. Si no hay variable de entorno, intentar desde archivo local
+    if not token_data:
+        token_data = _load_token_from_backup()
+        if token_data:
+            print(f"✅ Token cargado desde archivo de respaldo: {TOKEN_BACKUP_PATH}")
     
-    try:
-        import json
-        token_data = json.loads(token_json_env)
-    except json.JSONDecodeError as e:
+    # 3. Si no hay ninguna fuente, fallar
+    if not token_data:
         raise ValueError(
-            f"GOOGLE_TOKEN_JSON contiene JSON inválido: {str(e)}. "
-            "Verifica que el valor sea un JSON válido."
-        )
-    except Exception as e:
-        raise ValueError(
-            f"Error al procesar GOOGLE_TOKEN_JSON: {str(e)}. "
-            "Verifica que la variable de entorno esté correctamente configurada."
+            "GOOGLE_TOKEN_JSON no está configurada y no se encontró archivo de respaldo. "
+            "Configura la variable de entorno GOOGLE_TOKEN_JSON con el contenido completo del token JSON, "
+            "o coloca un archivo token.json en app/static/Credenciales/"
         )
     
     # Validar que el token tenga los campos necesarios
@@ -59,7 +110,8 @@ def get_credentials():
     
     if missing_fields:
         raise ValueError(
-            f"GOOGLE_TOKEN_JSON está incompleto. Faltan los campos: {', '.join(missing_fields)}"
+            f"El token está incompleto. Faltan los campos: {', '.join(missing_fields)}. "
+            "Asegúrate de incluir todos los campos necesarios."
         )
     
     # Crear credenciales desde el token
@@ -67,7 +119,7 @@ def get_credentials():
         creds = Credentials.from_authorized_user_info(token_data, SCOPES)
     except Exception as e:
         raise ValueError(
-            f"Error al crear credenciales desde GOOGLE_TOKEN_JSON: {str(e)}. "
+            f"Error al crear credenciales desde el token: {str(e)}. "
             "Verifica que el token sea válido y tenga el formato correcto."
         )
     
@@ -82,20 +134,48 @@ def get_credentials():
                 f"El token no tiene los scopes necesarios. Faltan: {', '.join(missing_scopes)}"
             )
     
-    # Si el token está expirado, intentar refrescarlo
+    # Si el token está expirado o es inválido, intentar refrescarlo
     if not creds.valid:
         if creds.expired and creds.refresh_token:
             try:
+                print("🔄 Token expirado, refrescando automáticamente...")
                 creds.refresh(Request())
+                print("✅ Token refrescado exitosamente")
+                
+                # Guardar el token actualizado
+                updated_token_data = {
+                    'token': creds.token,
+                    'refresh_token': creds.refresh_token,
+                    'token_uri': creds.token_uri,
+                    'client_id': creds.client_id,
+                    'client_secret': creds.client_secret,
+                    'scopes': list(creds.scopes) if creds.scopes else SCOPES
+                }
+                
+                # Guardar en archivo local como respaldo
+                _save_token_backup(updated_token_data)
+                
+                # Nota: No podemos actualizar la variable de entorno en Render desde aquí,
+                # pero el token refrescado funcionará hasta el próximo reinicio
+                # El usuario deberá actualizar manualmente GOOGLE_TOKEN_JSON en Render
+                # con el nuevo token si quiere que persista después de reinicios
+                
             except Exception as e:
-                raise ValueError(
-                    f"Error al refrescar el token: {str(e)}. "
-                    "El refresh_token puede ser inválido o haber expirado."
-                )
+                error_msg = str(e)
+                if 'invalid_grant' in error_msg.lower():
+                    raise ValueError(
+                        f"Error al refrescar el token: El refresh_token ha expirado o es inválido. "
+                        f"Necesitas generar un nuevo token. Error: {error_msg}"
+                    )
+                else:
+                    raise ValueError(
+                        f"Error al refrescar el token: {error_msg}. "
+                        "Verifica que el refresh_token sea válido."
+                    )
         else:
             raise ValueError(
-                "El token ha expirado y no se puede refrescar. "
-                "Genera un nuevo token y actualiza GOOGLE_TOKEN_JSON."
+                "El token ha expirado y no se puede refrescar (no hay refresh_token). "
+                "Genera un nuevo token y actualiza GOOGLE_TOKEN_JSON o el archivo token.json."
             )
     
     return creds

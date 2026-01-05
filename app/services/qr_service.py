@@ -182,7 +182,7 @@ class QRService:
             # Construir URL de edición del producto
             if base_url is None:
                 # Intentar detectar desde la configuración o usar localhost por defecto
-                base_url = os.environ.get('BASE_URL', 'http://localhost:5000')
+                base_url = os.environ.get('BASE_URL', 'https://convexa-1.onrender.com/')
             
             # Asegurar que base_url no termine con /
             base_url = base_url.rstrip('/')
