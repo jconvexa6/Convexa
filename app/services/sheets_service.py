@@ -117,10 +117,13 @@ class SheetsService:
     @staticmethod
     def get_product_by_id(product_id: str, sheet_url: str = None) -> Optional[Dict]:
         """
-        Obtener un producto específico por ID
+        Obtener un producto específico por ID o Referencia
+        
+        Busca primero por ID (en campos como 'ID', 'id', 'codigo', etc.) y luego por Referencia.
+        Esto permite usar tanto el ID como la Referencia como identificador en las URLs.
         
         Args:
-            product_id: ID del producto
+            product_id: ID o Referencia del producto
             sheet_url: URL del Google Sheet (opcional)
         
         Returns:
@@ -129,15 +132,23 @@ class SheetsService:
         try:
             data = SheetsService.get_inventory_data(sheet_url)
             
-            # Buscar producto por ID en diferentes formatos de columna
-            product_id_str = str(product_id).strip()
+            # Decodificar el product_id si viene codificado en la URL
+            import urllib.parse
+            product_id_str = urllib.parse.unquote(str(product_id).strip())
             
             for product in data:
-                # Buscar ID en diferentes formatos de columna
+                # Primero buscar por ID en diferentes formatos de columna
                 for id_key in ['id', 'ID', 'Id', 'codigo', 'Código', 'CODIGO', 'Codigo']:
                     if id_key in product:
                         product_id_value = str(product[id_key]).strip() if product[id_key] is not None else ''
                         if product_id_value == product_id_str:
+                            return product
+                
+                # Si no se encontró por ID, buscar por Referencia
+                for ref_key in ['Referencia', 'referencia', 'REFERENCIA', 'Ref', 'ref']:
+                    if ref_key in product:
+                        product_ref_value = str(product[ref_key]).strip() if product[ref_key] is not None else ''
+                        if product_ref_value == product_id_str:
                             return product
             
             return None
