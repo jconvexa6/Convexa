@@ -99,7 +99,7 @@ def get_product_reference(product: dict) -> str:
 def generate_all_qr_codes(base_url: str = None, skip_existing: bool = False, limit: int = None):
     """
     Generar códigos QR para todos los productos del inventario
-    El QR codificará la URL completa que redirige a la página de detalle del producto
+    El QR codificará la URL completa con la Referencia al final
     
     Args:
         base_url: URL base de la aplicación (opcional, se detecta automáticamente)
@@ -117,8 +117,8 @@ def generate_all_qr_codes(base_url: str = None, skip_existing: bool = False, lim
     
     base_url = base_url.rstrip('/')
     print(f"📍 URL base: {base_url}")
-    print(f"🔗 Los QR redirigirán a: {base_url}/product/detail/{{REFERENCIA}}")
-    print("📝 Usando el campo 'Referencia' como identificador del producto")
+    print(f"🔗 Los QR codificarán: {base_url}/product/detail/{{REFERENCIA}}")
+    print("   Ejemplo: https://convexa-1.onrender.com/product/detail/604-2RS1-C3GJN")
     print()
     
     # Obtener todos los productos del inventario
@@ -177,8 +177,8 @@ def generate_all_qr_codes(base_url: str = None, skip_existing: bool = False, lim
             })
             continue
         
-        # Construir URL completa del producto usando la Referencia como identificador
-        # Sanitizar la referencia para URL (codificar caracteres especiales)
+        # Construir URL completa con la Referencia al final
+        # Codificar la referencia para URL (manejar caracteres especiales)
         import urllib.parse
         reference_encoded = urllib.parse.quote(str(product_reference), safe='')
         product_url = f"{base_url}/product/detail/{reference_encoded}"
@@ -186,10 +186,10 @@ def generate_all_qr_codes(base_url: str = None, skip_existing: bool = False, lim
         # Mostrar progreso
         print(f"[{idx}/{total_products}] Procesando: {product_id} ({product_code})...")
         print(f"   Referencia: {product_reference}")
-        print(f"   URL: {product_url}")
+        print(f"   URL del QR: {product_url}")
         
         try:
-            # Generar QR con la URL completa que redirige a la página de detalle
+            # Generar QR con la URL completa que incluye la Referencia al final
             qr_image = QRService.generate_qr_code(product_url, product_code)
             
             if not qr_image:
@@ -203,11 +203,17 @@ def generate_all_qr_codes(base_url: str = None, skip_existing: bool = False, lim
                 })
                 continue
             
-            # Nombre del archivo: código del producto + .png
-            filename = f"{product_code}.png"
+            # Nombre del archivo: Referencia del producto + .png
+            # Sanitizar la referencia para que sea válida como nombre de archivo
+            import re
+            filename_safe = re.sub(r'[<>:"/\\|?*]', '_', str(product_reference))
+            # Limitar longitud del nombre de archivo
+            if len(filename_safe) > 100:
+                filename_safe = filename_safe[:100]
+            filename = f"{filename_safe}.png"
             
             # Subir QR a Drive
-            success = QRService.upload_qr_to_drive(qr_image, filename, product_code)
+            success = QRService.upload_qr_to_drive(qr_image, filename, product_reference)
             
             if success:
                 print("   ✅ QR generado y subido correctamente")

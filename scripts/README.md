@@ -21,11 +21,11 @@ python scripts/generate_all_qr_codes.py
 
 Este comando:
 - Lee todos los productos del inventario desde Google Sheets
-- Genera un código QR para cada producto que codifica la URL completa de la página de detalle
+- Genera un código QR para cada producto que codifica la URL completa con la Referencia al final
 - Sube cada QR a la carpeta QR en Google Drive
 - Muestra un resumen con estadísticas al finalizar
 
-**Nota importante**: El QR codifica la URL completa: `https://convexa-1.onrender.com/product/detail/{REFERENCIA}` que redirige a la página de detalle del producto. El campo "Referencia" se usa como identificador del producto en la URL.
+**Nota importante**: El QR codifica la URL completa: `https://convexa-1.onrender.com/product/detail/{REFERENCIA}` (ejemplo: `https://convexa-1.onrender.com/product/detail/604-2RS1-C3GJN`) El campo "Referencia" se usa como identificador del producto en la URL.
 
 ### Opciones Avanzadas
 
@@ -84,15 +84,16 @@ Antes de ejecutar los scripts, asegúrate de:
 
 2. **Extracción de Datos**: Para cada producto, extrae:
    - **ID del producto**: Busca en campos como 'ID', 'id', 'codigo', 'Código', etc. (usado para validación)
-   - **Código del producto**: Usado para el nombre del archivo QR (ej: `CODIGO123.png`)
-   - **Referencia del producto**: Usado como identificador en la URL (ej: `https://convexa-1.onrender.com/product/detail/{REFERENCIA}`)
+   - **Código del producto**: Usado para logging y referencia
+   - **Referencia del producto**: Usado para el nombre del archivo QR y al final de la URL
+     - Nombre del archivo: `{REFERENCIA}.png` (ej: `604-2RS1-C3GJN.png`)
+     - URL: `https://convexa-1.onrender.com/product/detail/{REFERENCIA}` (ej: `https://convexa-1.onrender.com/product/detail/604-2RS1-C3GJN`)
 
-3. **Generación de QR**: Crea un código QR que codifica la URL completa:
+3. **Generación de QR**: Crea un código QR que codifica la URL completa con la Referencia al final:
    ```
-   https://convexa-1.onrender.com/product/detail/{REFERENCIA}
+   https://convexa-1.onrender.com/product/detail/604-2RS1-C3GJN
    ```
-   Al escanear el QR, el usuario será redirigido a la página de detalle del producto en tu sitio web.
-   **Importante**: El campo "Referencia" se usa como identificador del producto en la URL.
+   Al escanear el QR, el usuario será redirigido a la página de detalle del producto usando la Referencia como identificador.
 
 4. **Subida a Drive**: Sube cada QR a la carpeta QR en Google Drive. Si el archivo ya existe, lo actualiza.
 
