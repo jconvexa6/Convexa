@@ -37,6 +37,12 @@ class Config:
         'HISTORY_SHEET_URL',
         'https://docs.google.com/spreadsheets/d/1RfaOyNpLT4IYR9vsRatE1G0Ru0BVjdHSNuBRF5tfN2M/edit'
     )
+    
+    # URL del Google Sheet de unidades de medida
+    UNITS_OF_MEASURE_SHEET_URL = os.environ.get(
+        'UNITS_OF_MEASURE_SHEET_URL',
+        'https://docs.google.com/spreadsheets/d/1zV1rrMLT4dDxxgKszlbkUyGfEKqE0GFC_jncUsekIJ4/edit'
+    )
 
 
 class DevelopmentConfig(Config):

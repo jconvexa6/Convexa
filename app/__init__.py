@@ -28,7 +28,7 @@ def create_app(config_name='default'):
     
     @login_manager.user_loader
     def load_user(user_id):
-        """Cargar usuario para Flask-Login"""
+        """Cargar usuario para Fl|ask-Login"""
         return User.get(user_id)
     
     # Registrar blueprints

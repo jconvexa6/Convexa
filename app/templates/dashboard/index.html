@@ -7,9 +7,14 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="mb-0">Dashboard de Inventario</h2>
-            <a href="{{ url_for('product.create') }}" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Crear Nuevo Producto
-            </a>
+            <div>
+                <a href="{{ url_for('dashboard.units_of_measure') }}" class="btn btn-info me-2">
+                    <i class="bi bi-list-ul"></i> Lista Unidades Medida
+                </a>
+                <a href="{{ url_for('product.create') }}" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Crear Nuevo Producto
+                </a>
+            </div>
         </div>
         
         {% if error_message %}
