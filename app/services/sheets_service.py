@@ -115,6 +115,79 @@ class SheetsService:
             return []
     
     @staticmethod
+    def get_next_product_id(sheet_url: str = None):
+        """
+        Obtener el siguiente ID consecutivo para un nuevo producto.
+        Lee el inventario, toma el máximo valor numérico de la columna ID y retorna max + 1.
+        Si no hay productos o no hay IDs numéricos, retorna 1.
+        
+        Returns:
+            int: Siguiente ID a asignar
+        """
+        try:
+            data = SheetsService.get_inventory_data(sheet_url)
+            if not data:
+                return 1
+            ids = []
+            id_keys = ['id', 'ID', 'Id', 'Id ', 'ID ']
+            for item in data:
+                for key in id_keys:
+                    if key in item and item[key] is not None:
+                        raw = str(item[key]).strip()
+                        if not raw:
+                            continue
+                        try:
+                            ids.append(int(float(raw)))
+                        except (ValueError, TypeError):
+                            pass
+                        break
+            return max(ids, default=0) + 1
+        except Exception as e:
+            print(f"Error en get_next_product_id: {e}")
+            return 1
+    
+    @staticmethod
+    def get_next_codigo_consecutivo(prefix: str, sheet_url: str = None) -> int:
+        """
+        Obtener el siguiente número consecutivo para un código con la abreviatura dada.
+        Busca en el inventario todos los valores de Codigo que empiecen con "PREFIX-"
+        (ej. RMEC-1, RMEC-2), extrae el número y retorna max + 1. Si no hay ninguno, retorna 1.
+        
+        Args:
+            prefix: Abreviatura del código (ej. RMEC, EFFI)
+            sheet_url: URL del Google Sheet (opcional)
+        
+        Returns:
+            int: Siguiente consecutivo a usar (ej. para RMEC-3 devuelve 3)
+        """
+        import re
+        try:
+            data = SheetsService.get_inventory_data(sheet_url)
+            prefix_clean = str(prefix).strip().upper()
+            if not prefix_clean:
+                return 1
+            numbers = []
+            code_keys = ['Codigo', 'codigo', 'Código', 'CODIGO', 'Codigo ']
+            for item in data:
+                for key in code_keys:
+                    if key not in item or item[key] is None:
+                        continue
+                    raw = str(item[key]).strip()
+                    if not raw:
+                        continue
+                    # Aceptar "RMEC-1" o "RMEC1"
+                    if raw.upper().startswith(prefix_clean):
+                        rest = raw[len(prefix_clean):].lstrip('-')
+                        match = re.match(r'^(\d+)', rest)
+                        if match:
+                            numbers.append(int(match.group(1)))
+                    break
+            return max(numbers, default=0) + 1
+        except Exception as e:
+            print(f"Error en get_next_codigo_consecutivo: {e}")
+            return 1
+    
+    @staticmethod
     def get_product_by_id(product_id: str, sheet_url: str = None) -> Optional[Dict]:
         """
         Obtener un producto específico por ID o Referencia

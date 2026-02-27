@@ -10,6 +10,14 @@ from app.services.qr_service import QRService
 product_bp = Blueprint('product', __name__)
 
 
+# Opciones fijas para el formulario de creación de producto
+CODIGO_OPCIONES = ['RMEC', 'EFFI', 'RNEU', 'RHID', 'EEPO', 'EAUT', 'LCON', 'SIND', 'EAPO']
+UNIDAD_MEDIDA_OPCIONES = [
+    'Unidad', 'Metros', 'Gramos', 'Kilogramos', 'Mililitros', 'Litro',
+    'Galón', 'Caneca', 'Juegos', 'Kit'
+]
+
+
 @product_bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
@@ -21,22 +29,31 @@ def create():
     
     # GET: Mostrar formulario de creación
     try:
-        # Obtener headers del inventario para saber qué campos mostrar
         inventory_data = SheetsService.get_inventory_data()
+        next_id = SheetsService.get_next_product_id()
+        # Siguiente consecutivo por abreviatura de código (ej. RMEC -> 3 para RMEC-3)
+        codigo_siguiente = {
+            abrev: SheetsService.get_next_codigo_consecutivo(abrev)
+            for abrev in CODIGO_OPCIONES
+        }
+        # Campos a mostrar (sin ID como editable; ID es auto)
         if inventory_data:
-            # Usar el primer producto como referencia para los campos
             sample_product = inventory_data[0]
-            return render_template(
-                'product/create.html',
-                fields=sample_product.keys()
-            )
+            fields = [k for k in sample_product.keys() if str(k).strip().lower() not in ('id', 'id ')]
+            if 'Codigo' not in fields and 'codigo' not in [f.lower() for f in fields]:
+                fields.insert(0, 'Codigo')
+            if 'Unidad-medida' not in fields and not any('unidad' in str(f).lower() for f in fields):
+                fields.append('Unidad-medida')
         else:
-            # Si no hay productos, usar campos por defecto
-            default_fields = ['ID', 'Codigo', 'Referencia', 'Descripcion', 'cantidad', 'Ubicación']
-            return render_template(
-                'product/create.html',
-                fields=default_fields
-            )
+            fields = ['Codigo', 'Referencia', 'Descripcion', 'Unidad-medida', 'cantidad', 'Ubicación', 'Stock-min', 'Estado']
+        return render_template(
+            'product/create.html',
+            fields=fields,
+            next_id=next_id,
+            codigo_opciones=CODIGO_OPCIONES,
+            codigo_siguiente=codigo_siguiente,
+            unidad_medida_opciones=UNIDAD_MEDIDA_OPCIONES
+        )
     except Exception as e:
         flash(f'Error al cargar formulario: {str(e)}', 'error')
         return redirect(url_for('dashboard.index'))
@@ -44,16 +61,14 @@ def create():
 
 def _create_product(username: str):
     """
-    Crear un nuevo producto
+    Crear un nuevo producto. El ID se asigna automáticamente (siguiente consecutivo).
     """
     try:
         form_data = request.form.to_dict()
         
-        # Validar que tenga ID (primera columna)
-        product_id = form_data.get('ID') or form_data.get('id') or form_data.get('Id')
-        if not product_id or str(product_id).strip() == '':
-            flash('El ID del producto es obligatorio.', 'error')
-            return redirect(url_for('product.create'))
+        # Asignar ID automático (siguiente consecutivo)
+        product_id = str(SheetsService.get_next_product_id())
+        form_data['ID'] = product_id
         
         # Crear producto en el inventario
         success = SheetsWriter.create_product_in_inventory(form_data)
@@ -116,7 +131,8 @@ def detail(product_id):
         return render_template(
             'product/detail.html',
             product=product,
-            product_id=product_id
+            product_id=product_id,
+            unidad_medida_opciones=UNIDAD_MEDIDA_OPCIONES
         )
     except Exception as e:
         abort(500, description=f"Error al cargar el producto: {str(e)}")

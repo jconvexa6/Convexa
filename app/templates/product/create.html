@@ -19,42 +19,99 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
+                        {# ID autoincrementable: solo lectura, el backend asigna el consecutivo #}
+                        <div class="col-md-6 mb-3">
+                            <label for="ID" class="form-label">ID <span class="text-danger">*</span></label>
+                            <input type="text"
+                                   class="form-control bg-light"
+                                   id="ID"
+                                   value="{{ next_id }}"
+                                   readonly
+                                   disabled
+                                   title="Se asigna automáticamente el siguiente consecutivo">
+                            <small class="text-muted">Se asigna automáticamente</small>
+                        </div>
+
                         {% for field in fields %}
-                            {% set is_locked = field.lower() in ['id', 'codigo', 'código'] %}
                             <div class="col-md-6 mb-3">
                                 <label for="{{ field }}" class="form-label">
-                                    {{ field|title|replace('_', ' ') }}
-                                    {% if field.lower() == 'id' %}
+                                    {{ field|replace('_', ' ')|replace('-', ' ') }}
+                                    {% if field.lower() in ['codigo', 'código', 'referencia'] %}
                                         <span class="text-danger">*</span>
                                     {% endif %}
                                 </label>
-                                {% if field.lower() == 'id' %}
-                                    <input 
-                                        type="text" 
-                                        class="form-control" 
-                                        id="{{ field }}" 
-                                        name="{{ field }}" 
-                                        required
-                                        placeholder="Ingrese el ID del producto"
-                                    >
-                                {% elif field.lower() in ['cantidad', 'stock', 'cantidad '] %}
-                                    <input 
-                                        type="number" 
-                                        step="0.01"
-                                        min="0"
-                                        class="form-control" 
-                                        id="{{ field }}" 
-                                        name="{{ field }}" 
-                                        value="0"
-                                    >
+
+                                {% if field.strip().lower() in ['codigo', 'código'] %}
+                                    <select class="form-select" id="codigo_abrev" required aria-label="Abreviatura del código">
+                                        <option value="">-- Seleccione código --</option>
+                                        {% for opcion in codigo_opciones %}
+                                            <option value="{{ opcion }}" data-next="{{ codigo_siguiente[opcion] }}">{{ opcion }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <input type="text"
+                                           class="form-control bg-light mt-2"
+                                           id="codigo_full_display"
+                                           readonly
+                                           disabled
+                                           placeholder="Ej. RMEC-1"
+                                           title="Se completa al elegir la abreviatura">
+                                    <input type="hidden" name="{{ field }}" id="codigo_full_value" value="">
+                                    
+                                    <script>
+                                    (function() {
+                                        var sel = document.getElementById('codigo_abrev');
+                                        var display = document.getElementById('codigo_full_display');
+                                        var hidden = document.getElementById('codigo_full_value');
+                                        function updateCodigo() {
+                                            var opt = sel.options[sel.selectedIndex];
+                                            if (!opt || !opt.value) {
+                                                display.value = '';
+                                                hidden.value = '';
+                                                return;
+                                            }
+                                            var abrev = opt.value;
+                                            var next = opt.getAttribute('data-next') || '1';
+                                            var full = abrev + '-' + next;
+                                            display.value = full;
+                                            hidden.value = full;
+                                        }
+                                        sel.addEventListener('change', updateCodigo);
+                                        updateCodigo();
+                                    })();
+                                    </script>
+                                {% elif field.strip().lower() in ['unidad-medida', 'unidad medida', 'unidadmedida'] %}
+                                    <select class="form-select" id="{{ field }}" name="{{ field }}" required>
+                                        <option value="">-- Seleccione unidad de medida --</option>
+                                        {% for opcion in unidad_medida_opciones %}
+                                            <option value="{{ opcion }}">{{ opcion }}</option>
+                                        {% endfor %}
+                                    </select>
+                                {% elif field.strip().lower() in ['estado'] %}
+                                    <select class="form-select" id="{{ field }}" name="{{ field }}" required>
+                                        <option value="">-- Seleccione estado --</option>
+                                        <option value="Activo">Activo</option>
+                                        <option value="Inactivo">Inactivo</option>
+                                    </select>
+                                {% elif field.strip().lower() in ['metodo', 'método'] %}
+                                    <select class="form-select" id="{{ field }}" name="{{ field }}" required>
+                                        <option value="">-- Seleccione método --</option>
+                                        <option value="Local">Local</option>
+                                        <option value="Importado">Importado</option>
+                                    </select>
+                                {% elif field.strip().lower() in ['cantidad', 'stock', 'cantidad '] %}
+                                    <input type="number"
+                                           step="0.01"
+                                           min="0"
+                                           class="form-control"
+                                           id="{{ field }}"
+                                           name="{{ field }}"
+                                           value="0">
                                 {% else %}
-                                    <input 
-                                        type="text" 
-                                        class="form-control" 
-                                        id="{{ field }}" 
-                                        name="{{ field }}" 
-                                        placeholder="Ingrese {{ field|title|replace('_', ' ') }}"
-                                    >
+                                    <input type="text"
+                                           class="form-control"
+                                           id="{{ field }}"
+                                           name="{{ field }}"
+                                           placeholder="Ingrese {{ field|replace('_', ' ')|replace('-', ' ') }}">
                                 {% endif %}
                             </div>
                         {% endfor %}
@@ -73,4 +130,3 @@
     </div>
 </div>
 {% endblock %}
-

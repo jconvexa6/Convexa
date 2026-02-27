@@ -39,6 +39,22 @@
                                         readonly
                                         style="background-color: #e9ecef;"
                                     >
+                                {% elif key.strip().lower() in ['estado'] %}
+                                    <select class="form-select" id="{{ key }}" name="{{ key }}">
+                                        <option value="Activo" {{ 'selected' if (value or '')|string|trim|lower == 'activo' else '' }}>Activo</option>
+                                        <option value="Inactivo" {{ 'selected' if (value or '')|string|trim|lower == 'inactivo' else '' }}>Inactivo</option>
+                                    </select>
+                                {% elif key.strip().lower() in ['metodo', 'método'] %}
+                                    <select class="form-select" id="{{ key }}" name="{{ key }}">
+                                        <option value="Local" {{ 'selected' if (value or '')|string|trim|lower == 'local' else '' }}>Local</option>
+                                        <option value="Importado" {{ 'selected' if (value or '')|string|trim|lower == 'importado' else '' }}>Importado</option>
+                                    </select>
+                                {% elif key.strip().lower() in ['unidad-medida', 'unidad medida', 'unidadmedida'] %}
+                                    <select class="form-select" id="{{ key }}" name="{{ key }}">
+                                        {% for opcion in unidad_medida_opciones %}
+                                            <option value="{{ opcion }}" {{ 'selected' if (value or '')|string|trim == opcion|string|trim else '' }}>{{ opcion }}</option>
+                                        {% endfor %}
+                                    </select>
                                 {% elif key.lower() in ['cantidad', 'stock', 'cantidad '] %}
                                     <div class="input-group">
                                         <input 
