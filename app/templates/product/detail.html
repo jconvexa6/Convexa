@@ -43,6 +43,7 @@
                                     <select class="form-select" id="{{ key }}" name="{{ key }}">
                                         <option value="Activo" {{ 'selected' if (value or '')|string|trim|lower == 'activo' else '' }}>Activo</option>
                                         <option value="Inactivo" {{ 'selected' if (value or '')|string|trim|lower == 'inactivo' else '' }}>Inactivo</option>
+                                        <option value="En proceso" {{ 'selected' if (value or '')|string|trim|lower == 'en proceso' else '' }}>En proceso</option>
                                     </select>
                                 {% elif key.strip().lower() in ['metodo', 'método'] %}
                                     <select class="form-select" id="{{ key }}" name="{{ key }}">
