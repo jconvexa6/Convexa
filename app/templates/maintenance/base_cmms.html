@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/maintenance.css') }}">
+{% endblock %}
+
+{% block title %}{% block maintenance_title %}Plan de mantenimiento{% endblock %} — CMMS{% endblock %}
+
+{% block content %}
+<div class="maintenance-app d-flex flex-column flex-lg-row g-0">
+    <div class="d-lg-none p-2 border-bottom bg-white sticky-top maintenance-mobile-topbar">
+        <button class="btn btn-outline-secondary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#cmmsSidebar" aria-expanded="false" aria-controls="cmmsSidebar">
+            <i class="bi bi-list me-2"></i> Menú de mantenimiento
+        </button>
+    </div>
+
+    <aside id="cmmsSidebar" class="maintenance-sidebar collapse d-lg-block flex-shrink-0 p-3 p-lg-4">
+        <div class="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom border-secondary">
+            <i class="bi bi-gear-wide-connected fs-4 text-primary"></i>
+            <div>
+                <div class="fw-bold text-white small">CMMS</div>
+                <div class="text-muted" style="font-size: 0.7rem;">Mantenimiento</div>
+            </div>
+        </div>
+
+        <nav class="nav flex-column gap-1 mb-4">
+            <a class="nav-link {% if active_section == 'dashboard' %}active{% endif %}"
+               href="{{ url_for('maintenance.dashboard') }}">
+                <i class="bi bi-grid-1x2-fill me-2"></i> Panel principal
+            </a>
+            <a class="nav-link {% if active_section == 'maquinas' %}active{% endif %}"
+               href="{{ url_for('maintenance.maquinas') }}">
+                <i class="bi bi-cpu-fill me-2"></i> Máquinas
+            </a>
+            <a class="nav-link {% if active_section == 'activos' %}active{% endif %}"
+               href="{{ url_for('maintenance.activos') }}">
+                <i class="bi bi-boxes me-2"></i> Activos mantenibles
+            </a>
+            <a class="nav-link {% if active_section == 'mantenimientos' %}active{% endif %}"
+               href="{{ url_for('maintenance.mantenimientos') }}">
+                <i class="bi bi-tools me-2"></i> Mantenimientos
+            </a>
+            <a class="nav-link {% if active_section == 'historico' %}active{% endif %}"
+               href="{{ url_for('maintenance.historico') }}">
+                <i class="bi bi-clock-history me-2"></i> Histórico
+            </a>
+        </nav>
+    </aside>
+
+    <div class="maintenance-main flex-grow-1 p-3 p-lg-4">
+        {% block maintenance_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}

@@ -35,10 +35,12 @@ def create_app(config_name='default'):
     from app.routes.auth import auth_bp
     from app.routes.dashboard import dashboard_bp
     from app.routes.product import product_bp
+    from app.routes.maintenance import maintenance_bp
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(dashboard_bp, url_prefix='/')
     app.register_blueprint(product_bp, url_prefix='/product')
+    app.register_blueprint(maintenance_bp)
     
     return app
 

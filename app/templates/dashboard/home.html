@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Sistema de Inventario{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-9">
+        <div class="text-center mb-4">
+            <h1 class="display-6 fw-bold text-primary">Bienvenido al Sistema de Gestion de Mantenimiento</h1>
+            <p class="lead text-muted mb-0">
+                Gestiona productos, movimientos y códigos QR integrados con Google Sheets y Google Drive.
+            </p>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="text-primary mb-2">
+                            <i class="bi bi-table fs-3"></i>
+                        </div>
+                        <h5 class="card-title">Inventario</h5>
+                        <p class="card-text text-muted small">
+                            Consulta y filtra el inventario completo desde el dashboard. Los datos se sincronizan con tu hoja de cálculo.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="text-success mb-2">
+                            <i class="bi bi-box-seam fs-3"></i>
+                        </div>
+                        <h5 class="card-title">Productos</h5>
+                        <p class="card-text text-muted small">
+                            Crea nuevos productos, edita existentes y registra ingresos y salidas de stock.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="text-info mb-2">
+                            <i class="bi bi-qr-code fs-3"></i>
+                        </div>
+                        <h5 class="card-title">Códigos QR</h5>
+                        <p class="card-text text-muted small">
+                            Genera QR que enlazan al detalle del producto y organízalos en Google Drive.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3">Accesos rápidos</h2>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">
+                        <i class="bi bi-speedometer2"></i> Ir al Dashboard
+                    </a>
+                <!-- <a href="{{ url_for('product.create') }}" class="btn btn-outline-success">
+                        <i class="bi bi-plus-circle"></i> Crear producto
+                    </a>
+                    <a href="{{ url_for('dashboard.units_of_measure') }}" class="btn btn-outline-info">
+                        <i class="bi bi-list-ul"></i> Unidades de medida
+                    </a>-->
+                    <a href="{{ url_for('maintenance.dashboard') }}" class="btn btn-outline-dark">
+                        <i class="bi bi-gear-wide-connected"></i> Planes de mantenimiento
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-center text-muted small mt-4 mb-0">
+            Usa el menú superior para ir al <strong>Dashboard</strong> cuando quieras ver la tabla de inventario.
+        </p>
+    </div>
+</div>
+{% endblock %}

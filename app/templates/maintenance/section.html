@@ -1,0 +1,104 @@
+{% extends "maintenance/base_cmms.html" %}
+
+{% block maintenance_title %}{{ section_title }}{% endblock %}
+
+{% block maintenance_content %}
+<div class="mb-4">
+    <h1 class="h3 fw-bold text-dark mb-2">{{ section_title }}</h1>
+    {% if can_create %}
+    <div class="mt-3">
+        <a class="btn btn-primary maintenance-btn-responsive" href="{{ url_for('maintenance.' ~ active_section ~ '_crear') }}">
+            <i class="bi bi-plus-circle"></i> Nuevo registro
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-white py-2 d-flex flex-wrap gap-2 align-items-center justify-content-between">
+        <span class="small fw-semibold text-uppercase text-muted">Vista previa de tabla</span>
+        <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn btn-outline-secondary" disabled>Buscar</button>
+            <button type="button" class="btn btn-outline-secondary" disabled>Filtros</button>
+        </div>
+    </div>
+    {% if error_message %}
+    <div class="alert alert-warning m-3 mb-0">{{ error_message }}</div>
+    {% endif %}
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table id="maintenanceTable" class="table table-maintenance table-hover table-striped mb-0 w-100">
+                <thead class="table-light">
+                    <tr>
+                        {% for col in table_columns %}
+                        <th>{{ col }}</th>
+                        {% endfor %}
+                        {% if can_edit or can_delete %}
+                        <th>Acciones</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in table_rows %}
+                    <tr>
+                        {% for cell in row %}
+                        <td>{{ cell }}</td>
+                        {% endfor %}
+                        {% if can_edit or can_delete %}
+                        <td>
+                            {% set rid = row[id_col_index] if id_col_index is not none and row|length > id_col_index else '' %}
+                            {% set estado_mtto = row[estado_col_index] if estado_col_index is not none and row|length > estado_col_index else '' %}
+                            <div class="d-flex flex-wrap gap-1 maintenance-actions">
+                                {% if rid %}
+                                {% if can_edit %}
+                                <a class="btn btn-sm btn-outline-primary" href="{{ url_for('maintenance.' ~ active_section ~ '_editar', record_id=rid) }}">
+                                    <i class="bi bi-pencil-square"></i> Editar
+                                </a>
+                                {% endif %}
+                                {% if can_delete %}
+                                <form method="POST" action="{{ url_for('maintenance.' ~ active_section ~ '_eliminar', record_id=rid) }}"
+                                      onsubmit="return confirm('¿Seguro que deseas eliminar este registro?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i> Eliminar
+                                    </button>
+                                </form>
+                                {% endif %}
+                                {% if can_close_mantenimiento and active_section == 'mantenimientos' and estado_mtto|string|upper == 'HECHO' %}
+                                <form method="POST" action="{{ url_for('maintenance.cerrar_mantenimiento', mtto_id=rid) }}">
+                                    <input type="hidden" name="cerrado_por" value="{{ current_user.username if current_user.is_authenticated else 'Sistema' }}">
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="bi bi-check2-circle"></i> Cerrar
+                                    </button>
+                                </form>
+                                {% endif %}
+                                {% else %}
+                                <span class="badge text-bg-warning">Sin ID</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof $ !== 'undefined' && $.fn.DataTable) {
+        $('#maintenanceTable').DataTable({
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
+            pageLength: 10,
+            ordering: true,
+            searching: true,
+            responsive: true,
+            dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip'
+        });
+    }
+});
+</script>
+{% endblock %}

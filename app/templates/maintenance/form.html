@@ -1,0 +1,91 @@
+{% extends "maintenance/base_cmms.html" %}
+
+{% block maintenance_title %}
+{{ 'Crear' if mode == 'crear' else 'Editar' }} {{ section_label }}
+{% endblock %}
+
+{% block maintenance_content %}
+<div class="mb-4">
+    <h1 class="h3 fw-bold text-dark mb-2">
+        {{ 'Crear' if mode == 'crear' else 'Editar' }} {{ section_label }}
+    </h1>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <form method="POST">
+            <div class="row g-3">
+                {% for field in fields %}
+                {% set f = field|string %}
+                {% set lower = f|lower %}
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold" for="{{ f }}">{{ f }}</label>
+
+                    {% if lower == 'estado' and section_key == 'maquinas' %}
+                    <select class="form-select" id="{{ f }}" name="{{ f }}" required>
+                        {% set v = record.get(f, '') %}
+                        <option value="ACTIVA" {{ 'selected' if v|upper == 'ACTIVA' else '' }}>ACTIVA</option>
+                        <option value="INACTIVA" {{ 'selected' if v|upper == 'INACTIVA' else '' }}>INACTIVA</option>
+                    </select>
+
+                    {% elif lower == 'estado' and section_key == 'mantenimientos' %}
+                    {% set v = record.get(f, '') %}
+                    <select class="form-select" id="{{ f }}" name="{{ f }}" required>
+                        {% for st in ['PROGRAMADO','PENDIENTE','EN_PROCESO','HECHO','OMITIDO','REPROGRAMADO'] %}
+                        <option value="{{ st }}" {{ 'selected' if v|upper == st else '' }}>{{ st }}</option>
+                        {% endfor %}
+                    </select>
+
+                    {% elif lower in ['activo'] %}
+                    {% set v = record.get(f, '') %}
+                    <select class="form-select" id="{{ f }}" name="{{ f }}">
+                        <option value="TRUE" {{ 'selected' if v|upper in ['TRUE','1','SI','SÍ'] else '' }}>TRUE</option>
+                        <option value="FALSE" {{ 'selected' if v|upper in ['FALSE','0','NO'] else '' }}>FALSE</option>
+                    </select>
+
+                    {% elif lower in ['tipo'] and section_key == 'activos' %}
+                    {% set v = record.get(f, '') %}
+                    <select class="form-select" id="{{ f }}" name="{{ f }}" required>
+                        <option value="MAQUINA" {{ 'selected' if v|upper == 'MAQUINA' else '' }}>MAQUINA</option>
+                        <option value="COMPONENTE" {{ 'selected' if v|upper == 'COMPONENTE' else '' }}>COMPONENTE</option>
+                    </select>
+
+                    {% elif lower in ['tipo_mtto'] and section_key == 'mantenimientos' %}
+                    {% set v = record.get(f, '') %}
+                    <select class="form-select" id="{{ f }}" name="{{ f }}" required>
+                        <option value="PREVENTIVO" {{ 'selected' if v|upper == 'PREVENTIVO' else '' }}>PREVENTIVO</option>
+                        <option value="CORRECTIVO" {{ 'selected' if v|upper == 'CORRECTIVO' else '' }}>CORRECTIVO</option>
+                    </select>
+
+                    {% elif lower in ['observaciones','actividad'] %}
+                    <textarea class="form-control" id="{{ f }}" name="{{ f }}" rows="3">{{ record.get(f, '') }}</textarea>
+
+                    {% else %}
+                    <input
+                        class="form-control"
+                        id="{{ f }}"
+                        name="{{ f }}"
+                        value="{{ record.get(f, '') }}"
+                        {% if mode == 'editar' and (
+                            (section_key == 'maquinas' and lower == 'id_maquina') or
+                            (section_key == 'activos' and lower == 'id_activo') or
+                            (section_key == 'mantenimientos' and lower == 'id_mtto')
+                        ) %}readonly{% endif %}
+                    >
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="mt-4 d-flex flex-column flex-sm-row gap-2">
+                <button class="btn btn-primary maintenance-btn-responsive" type="submit">
+                    <i class="bi bi-save"></i> Guardar
+                </button>
+                <a class="btn btn-secondary maintenance-btn-responsive" href="{{ url_for('maintenance.' ~ section_key) }}">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

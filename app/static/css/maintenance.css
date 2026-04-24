@@ -1,0 +1,135 @@
+/* CMMS / Plan de mantenimiento — estilo industrial */
+.maintenance-app {
+  min-height: calc(100vh - 120px);
+  background: #f0f2f5;
+}
+
+.maintenance-sidebar {
+  width: 100%;
+  max-width: 280px;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  color: #e2e8f0;
+  border-right: 1px solid #334155;
+}
+
+@media (min-width: 992px) {
+  .maintenance-sidebar {
+    min-height: calc(100vh - 56px);
+  }
+}
+
+.maintenance-sidebar .nav-link {
+  color: #94a3b8;
+  border-radius: 0.375rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.9rem;
+  border: 1px solid transparent;
+}
+
+.maintenance-sidebar .nav-link:hover {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.maintenance-sidebar .nav-link.active {
+  color: #fff;
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.maintenance-main {
+  background: #f0f2f5;
+  min-width: 0;
+}
+
+.maintenance-kpi-card {
+  border: none;
+  border-left: 4px solid #3b82f6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.maintenance-kpi-card.kpi-warning {
+  border-left-color: #eab308;
+}
+
+.maintenance-kpi-card.kpi-danger {
+  border-left-color: #ef4444;
+}
+
+.maintenance-kpi-card.kpi-success {
+  border-left-color: #22c55e;
+}
+
+.btn-maintenance-primary {
+  background: #1e40af;
+  border-color: #1e40af;
+  font-weight: 600;
+  padding: 0.55rem 1.25rem;
+}
+
+.btn-maintenance-primary:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.table-maintenance thead th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #475569;
+  border-bottom-width: 2px;
+}
+
+.maintenance-mobile-topbar {
+  z-index: 1020;
+}
+
+@media (max-width: 991.98px) {
+  .maintenance-app {
+    min-height: auto;
+  }
+
+  .maintenance-sidebar {
+    max-width: none;
+    border-right: 0;
+    border-bottom: 1px solid #334155;
+  }
+
+  .maintenance-main {
+    padding: 1rem !important;
+  }
+
+  .maintenance-kpi-card .display-6 {
+    font-size: 1.6rem;
+  }
+
+  .maintenance-actions .btn,
+  .maintenance-actions form {
+    width: 100%;
+  }
+
+  .maintenance-actions form button {
+    width: 100%;
+  }
+
+  .maintenance-btn-responsive {
+    width: 100%;
+  }
+}
+
+@media (min-width: 992px) {
+  .maintenance-btn-responsive {
+    width: auto;
+  }
+}
+
+.badge-status-vigente {
+  background: #22c55e;
+}
+.badge-status-proximo {
+  background: #eab308;
+  color: #1c1917;
+}
+.badge-status-vencido {
+  background: #ef4444;
+}

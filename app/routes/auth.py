@@ -26,7 +26,7 @@ def login():
         if user:
             login_user(user, remember=True)
             next_page = request.args.get('next')
-            return redirect(next_page or url_for('dashboard.index'))
+            return redirect(next_page or url_for('dashboard.home'))
         else:
             flash('Usuario o contraseña incorrectos.', 'error')
     

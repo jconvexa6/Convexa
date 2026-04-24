@@ -10,6 +10,14 @@ dashboard_bp = Blueprint('dashboard', __name__)
 
 
 @dashboard_bp.route('/')
+@login_required
+def home():
+    """
+    Página de inicio informativa tras el login (antes del dashboard de inventario).
+    """
+    return render_template('dashboard/home.html')
+
+
 @dashboard_bp.route('/dashboard')
 @login_required
 def index():

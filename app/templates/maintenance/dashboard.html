@@ -1,0 +1,75 @@
+{% extends "maintenance/base_cmms.html" %}
+
+{% block maintenance_title %}Panel CMMS{% endblock %}
+
+{% block maintenance_content %}
+<div class="mb-4">
+    <h1 class="h3 fw-bold text-dark mb-1">Gestión de plan de mantenimiento</h1>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card maintenance-kpi-card h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase">Total máquinas</div>
+                <div class="display-6 fw-bold text-primary">{{ kpis.total_maquinas }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card maintenance-kpi-card kpi-success h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase">Activos mantenibles</div>
+                <div class="display-6 fw-bold text-success">{{ kpis.total_activos }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card maintenance-kpi-card kpi-warning h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase">Programados</div>
+                <div class="display-6 fw-bold text-warning">{{ kpis.programados }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card maintenance-kpi-card kpi-danger h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase">Pendientes</div>
+                <div class="display-6 fw-bold text-danger">{{ kpis.pendientes }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card maintenance-kpi-card h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase">En proceso</div>
+                <div class="display-6 fw-bold text-dark">{{ kpis.en_proceso }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card maintenance-kpi-card kpi-success h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase">Hechos / Históricos</div>
+                <div class="display-6 fw-bold text-secondary">{{ kpis.hechos }} / {{ kpis.historicos }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <h2 class="h5 mb-3">Flujo del sistema</h2>
+        <div class="d-flex flex-wrap align-items-center gap-2 small text-muted">
+            <span class="badge bg-secondary">MAQUINAS</span>
+            <i class="bi bi-arrow-right"></i>
+            <span class="badge bg-secondary">ACTIVOS_MANTENIBLES</span>
+            <i class="bi bi-arrow-right"></i>
+            <span class="badge bg-secondary">MANTENIMIENTOS</span>
+            <i class="bi bi-arrow-right"></i>
+            <span class="badge bg-secondary">HISTORICO_MANTENIMIENTOS</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
