@@ -27,6 +27,7 @@ Los usuarios se leen desde este Excel:
 ### Paso 1: Configuración en Render
 - **Build Command:** `pip install --upgrade pip && pip install -r requirements.txt`
 - **Start Command:** `gunicorn wsgi:app`
+- **Health Check Path:** `/health` (la ruta `/` redirige al login con 302 y puede hacer fallar el despliegue si Render espera 200)
 
 ### Paso 2: Variables de Entorno
 
