@@ -150,27 +150,46 @@ def _save_product(product_id: str, original_product: dict, username: str):
         tipo_movimiento = form_data.get('tipo_movimiento', '').strip()
         unidades_str = form_data.get('unidades', '0').strip()
         
-        if not tipo_movimiento:
+        # Permitir actualización sin movimiento cuando el estado objetivo es "En proceso"
+        estado_objetivo = ''
+        for key in ['Estado', 'estado']:
+            if key in form_data and str(form_data.get(key, '')).strip():
+                estado_objetivo = str(form_data.get(key, '')).strip()
+                break
+            for real_key in form_data.keys():
+                if str(real_key).strip().lower() == key.lower():
+                    estado_objetivo = str(form_data.get(real_key, '')).strip()
+                    break
+            if estado_objetivo:
+                break
+        requiere_movimiento = estado_objetivo.lower() != 'en proceso'
+        
+        if not tipo_movimiento and requiere_movimiento:
             flash('Por favor, seleccione un tipo de movimiento (Ingreso o Salida).', 'error')
             return redirect(url_for('product.detail', product_id=product_id))
         
-        try:
-            unidades = float(unidades_str) if unidades_str else 0
-            if unidades <= 0:
-                flash('Las unidades deben ser mayor a 0.', 'error')
-                return redirect(url_for('product.detail', product_id=product_id))
-        except ValueError:
-            flash('Las unidades deben ser un número válido.', 'error')
-            return redirect(url_for('product.detail', product_id=product_id))
-        
-        # Calcular ajuste según el tipo de movimiento
-        if tipo_movimiento == 'ingreso':
-            ajuste = unidades  # Positivo para aumentar
-        elif tipo_movimiento == 'salida':
-            ajuste = -unidades  # Negativo para disminuir
+        if not tipo_movimiento:
+            # Sin movimiento, solo actualizar campos (ej. estado = En proceso)
+            unidades = 0
+            ajuste = 0
         else:
-            flash('Tipo de movimiento inválido.', 'error')
-            return redirect(url_for('product.detail', product_id=product_id))
+            try:
+                unidades = float(unidades_str) if unidades_str else 0
+                if unidades <= 0:
+                    flash('Las unidades deben ser mayor a 0.', 'error')
+                    return redirect(url_for('product.detail', product_id=product_id))
+            except ValueError:
+                flash('Las unidades deben ser un número válido.', 'error')
+                return redirect(url_for('product.detail', product_id=product_id))
+            
+            # Calcular ajuste según el tipo de movimiento
+            if tipo_movimiento == 'ingreso':
+                ajuste = unidades  # Positivo para aumentar
+            elif tipo_movimiento == 'salida':
+                ajuste = -unidades  # Negativo para disminuir
+            else:
+                flash('Tipo de movimiento inválido.', 'error')
+                return redirect(url_for('product.detail', product_id=product_id))
         
         # Obtener stock actual
         # Buscar el campo de cantidad/stock (puede tener diferentes nombres)

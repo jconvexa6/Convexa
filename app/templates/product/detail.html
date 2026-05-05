@@ -94,8 +94,7 @@
                             <select 
                                 class="form-select" 
                                 id="tipo_movimiento" 
-                                name="tipo_movimiento" 
-                                required
+                                name="tipo_movimiento"
                             >
                                 <option value="">Seleccione...</option>
                                 <option value="ingreso">Ingreso</option>
@@ -114,7 +113,6 @@
                                 id="unidades" 
                                 name="unidades" 
                                 value="0"
-                                required
                             >
                         </div>
                         <div class="col-md-4 mb-3">
@@ -164,16 +162,41 @@
         const tipoMovimientoSelect = document.getElementById('tipo_movimiento');
         const unidadesInput = document.getElementById('unidades');
         const stockFinalInput = document.getElementById('stock_final');
+        const estadoSelect = document.querySelector('select[name="Estado"], select[name="estado"]');
+        
+        function requiereMovimiento() {
+            if (!estadoSelect) return true;
+            return (estadoSelect.value || '').trim().toLowerCase() !== 'en proceso';
+        }
+        
+        function actualizarReglasMovimiento() {
+            const movementRequired = requiereMovimiento();
+            if (tipoMovimientoSelect) {
+                tipoMovimientoSelect.required = movementRequired;
+                if (!movementRequired && !tipoMovimientoSelect.value) {
+                    tipoMovimientoSelect.value = '';
+                }
+            }
+            if (unidadesInput) {
+                unidadesInput.required = movementRequired;
+                if (!movementRequired && (!unidadesInput.value || parseFloat(unidadesInput.value) < 0)) {
+                    unidadesInput.value = '0';
+                }
+            }
+        }
         
         function calcularStockFinal() {
             if (stockInput && tipoMovimientoSelect && unidadesInput && stockFinalInput) {
                 const stockActual = parseFloat(stockInput.value) || 0;
                 const unidades = parseFloat(unidadesInput.value) || 0;
                 const tipoMovimiento = tipoMovimientoSelect.value;
+                const movementRequired = requiereMovimiento();
                 
                 let stockFinal = stockActual;
                 
-                if (tipoMovimiento === 'ingreso') {
+                if (!movementRequired) {
+                    stockFinal = stockActual;
+                } else if (tipoMovimiento === 'ingreso') {
                     stockFinal = stockActual + unidades;
                 } else if (tipoMovimiento === 'salida') {
                     stockFinal = stockActual - unidades;
@@ -202,6 +225,13 @@
             unidadesInput.addEventListener('input', calcularStockFinal);
             unidadesInput.addEventListener('change', calcularStockFinal);
         }
+        if (estadoSelect) {
+            estadoSelect.addEventListener('change', function() {
+                actualizarReglasMovimiento();
+                calcularStockFinal();
+            });
+        }
+        actualizarReglasMovimiento();
         calcularStockFinal(); // Calcular inicial
         
         // Validar antes de enviar
@@ -211,22 +241,23 @@
                 const tipoMovimiento = tipoMovimientoSelect.value;
                 const unidades = parseFloat(unidadesInput.value) || 0;
                 const stockFinal = parseFloat(stockFinalInput.value) || 0;
+                const movementRequired = requiereMovimiento();
                 
-                if (!tipoMovimiento) {
+                if (movementRequired && !tipoMovimiento) {
                     e.preventDefault();
                     alert('Por favor, seleccione un tipo de movimiento (Ingreso o Salida).');
                     tipoMovimientoSelect.focus();
                     return false;
                 }
                 
-                if (unidades <= 0) {
+                if (movementRequired && unidades <= 0) {
                     e.preventDefault();
                     alert('Las unidades deben ser mayor a 0.');
                     unidadesInput.focus();
                     return false;
                 }
                 
-                if (stockFinal < 0) {
+                if (movementRequired && stockFinal < 0) {
                     e.preventDefault();
                     alert('No se puede guardar. El stock final sería negativo. Por favor, ajuste el valor de unidades.');
                     unidadesInput.focus();
